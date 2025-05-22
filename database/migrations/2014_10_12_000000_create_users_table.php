@@ -21,7 +21,17 @@ return new class extends Migration
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();
+
+            // Add the store_id column (nullable)
+            $table->unsignedBigInteger('shop_id')->nullable(); // ⬅️ Added this
+
+            // Add role column (enum)
+            $table->enum('role', ['admin', 'cashier', 'manager'])->default('cashier');
+
+            // Add foreign key constraint for store_id if the stores table exists
+            $table->foreign('shop_id')->references('id')->on('shops')->onDelete('set null');
         });
+        
     }
 
     /**

@@ -2,40 +2,35 @@
 
 namespace App\Notifications;
 
-use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 
 class LowStockAlert extends Notification
 {
-    use Queueable;
-    private $product;
+    protected $product;
 
     public function __construct($product)
     {
         $this->product = $product;
     }
 
+    // Notification via database
     public function via($notifiable)
     {
-        return ['database', 'mail'];
+        return ['database']; // Ensure you're sending it through the 'database' channel
     }
 
-    public function toMail($notifiable)
-    {
-        return (new MailMessage)
-            ->subject('Low Stock Alert')
-            ->line("The stock for {$this->product->name} is low.")
-            ->action('Restock Now', url('/admin/products'))
-            ->line('Ensure stock levels are sufficient.');
-    }
-
-    public function toArray($notifiable)
+    // Store the notification in the database
+    public function toDatabase($notifiable)
     {
         return [
-            'message' => "Stock for {$this->product->name} is below the reorder level.",
-            'product_id' => $this->product->id
+            'product_name' => $this->product->name,
+            'stock_quantity' => $this->product->stock_quantity,
+            'message' => 'Stock is low for ' . $this->product->name,
         ];
     }
 }
+
+
+
+
+

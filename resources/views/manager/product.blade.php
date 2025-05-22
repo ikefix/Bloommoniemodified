@@ -1,8 +1,9 @@
-@extends('layouts.adminapp')
+@extends('layouts.managerapp')
 
-@section('admincontent')
-<div class="container product-con">
-    
+@section('managercontent')
+
+<div class="container">
+
     <div class="flex-container">
 
         <!-- Display Success Message -->
@@ -16,79 +17,88 @@
             </div>
         @endif
 
-        <form action="{{ route('products.store') }}" method="POST" id="product-form">
-            <h2>Add New Product</h2>
-            @csrf
+        @if(Auth::user()->role === 'manager')
+            @php
+                $hasProductAccess = \App\Models\ProductPermission::where('manager_id', Auth::user()->id)->exists();
+            @endphp
 
-            <!-- Select Store -->
-            <div class="mb-3">
-                <label for="shop_id">Select Shop</label>
-                <select name="shop_id" id="shop_id" class="form-control" required>
-                    <option value="">-- Select Category --</option>
-                    @foreach ($shops as $shop)
-                        <option value="{{ $shop->id }}">{{ $shop->name }}</option>
-                    @endforeach
-                </select>
-            </div>
+            @if($hasProductAccess)
+                <form action="{{ route('products.store') }}" method="POST" id="product-form">
+                    <h2>Add New Product</h2>
+                    @csrf
 
-        
-            <!-- Select Category -->
-            <div class="mb-3">
-                <label for="category_id" class="form-label">Category</label>
-                <select name="category_id" id="category_id" class="form-control" required>
-                    <option value="">-- Select Category --</option>
-                    @foreach ($categories as $category)
-                        <option value="{{ $category->id }}">{{ $category->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-        
-            <!-- Product Name with suggestions -->
-            <div class="mb-3">
-                <label for="name" class="form-label">Product Name</label>
-                <input list="product_suggestions" name="name" id="name" class="form-control" required>
-                <datalist id="product_suggestions"></datalist>
-            </div>
-        
-            <!-- Price -->
-            <div class="mb-3">
-                <label for="price" class="form-label">Price</label>
-                <input type="number" name="price" id="price" class="form-control" required>
-            </div>
-        
-            <!-- Cost Price -->
-            <div class="mb-3">
-                <label for="cost_price" class="form-label">Cost Price</label>
-                <input type="number" name="cost_price" id="cost_price" class="form-control" required>
-            </div>
-        
-            <!-- Stock Quantity -->
-            <div class="mb-3">
-                <label for="stock_quantity" class="form-label">Stock Quantity</label>
-                <input type="number" name="stock_quantity" id="stock_quantity" class="form-control" required>
-            </div>
-        
-            <!-- Stock Limit -->
-            <div class="mb-3">
-                <label for="stock_limit" class="form-label">Stock Limit</label>
-                <input type="number" name="stock_limit" id="stock_limit" class="form-control" value="{{ old('stock_limit') }}" required>
-            </div>
-        
-            <!-- Hidden Product ID (used for editing) -->
-            <input type="hidden" name="product_id" id="product_id">
-        
-            <!-- 🔥 Hidden _method field to switch POST/PUT via JS -->
-            <input type="hidden" name="_method" id="form_method" value="POST">
-        
-            <!-- Submit Button -->
-            <button type="submit" class="btn btn-primary">Add Product</button>
-        </form>
-        
+                    <!-- Select Store -->
+                    <div class="mb-3">
+                        <label for="shop_id">Select Shop</label>
+                        <select name="shop_id" id="shop_id" class="form-control" required>
+                            <option value="">-- Select Category --</option>
+                            @foreach ($shops as $shop)
+                                <option value="{{ $shop->id }}">{{ $shop->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
 
+                    <!-- Select Category -->
+                    <div class="mb-3">
+                        <label for="category_id" class="form-label">Category</label>
+                        <select name="category_id" id="category_id" class="form-control" required>
+                            <option value="">-- Select Category --</option>
+                            @foreach ($categories as $category)
+                                <option value="{{ $category->id }}">{{ $category->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Product Name with suggestions -->
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Product Name</label>
+                        <input list="product_suggestions" name="name" id="name" class="form-control" required>
+                        <datalist id="product_suggestions"></datalist>
+                    </div>
+
+                    <!-- Price -->
+                    <div class="mb-3">
+                        <label for="price" class="form-label">Price</label>
+                        <input type="number" name="price" id="price" class="form-control" required>
+                    </div>
+
+                    <!-- Cost Price -->
+                    <div class="mb-3">
+                        <label for="cost_price" class="form-label">Cost Price</label>
+                        <input type="number" name="cost_price" id="cost_price" class="form-control" required>
+                    </div>
+
+                    <!-- Stock Quantity -->
+                    <div class="mb-3">
+                        <label for="stock_quantity" class="form-label">Stock Quantity</label>
+                        <input type="number" name="stock_quantity" id="stock_quantity" class="form-control" required>
+                    </div>
+
+                    <!-- Stock Limit -->
+                    <div class="mb-3">
+                        <label for="stock_limit" class="form-label">Stock Limit</label>
+                        <input type="number" name="stock_limit" id="stock_limit" class="form-control" value="{{ old('stock_limit') }}" required>
+                    </div>
+
+                    <!-- Hidden Product ID (used for editing) -->
+                    <input type="hidden" name="product_id" id="product_id">
+
+                    <!-- 🔥 Hidden _method field to switch POST/PUT via JS -->
+                    <input type="hidden" name="_method" id="form_method" value="POST">
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn btn-primary">Add Product</button>
+                </form>
+                @else
+                    <p>You do not have access to this page.</p>
+                @endif
+            @endif
+            
+
+        <!-- Product Table (can be hidden based on access) -->
         <div class="">
-            {{-- <h2 class="mb-4">Product Inventory Overview 🧾</h2> --}}
             <h2 class="mb-4">Available Product 🧾</h2>
-        
+
             @if (session('success'))
                 <div class="alert alert-success">{{ session('success') }}</div>
             @endif
@@ -97,10 +107,12 @@
             <div id="product-table">
                 @include('products.partials.table')
             </div>
-        
+
         </div>
     </div>
 </div>
+
+
 <script>
     const form = document.querySelector('#product-form');
     const productIdField = document.querySelector('#product_id');
@@ -273,5 +285,4 @@ document.querySelectorAll('.edit-btn').forEach(button => {
             });
         });
     </script>
-    
 @endsection

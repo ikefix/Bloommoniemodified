@@ -1,6 +1,6 @@
-@extends('layouts.adminapp')
+@extends('layouts.managerapp')
 
-@section('admincontent')
+@section('managercontent')
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-8">
@@ -8,7 +8,7 @@
                 <div class="card-header">{{ __('Register New Staff') }}</div>
 
                 <div class="card-body">
-                    <form method="POST" action="{{ route('admin.storeStaff') }}">
+                    <form method="POST" action="{{ route('manager.storeStaff') }}">
                         @csrf
 
                         <div class="row mb-3">
@@ -59,7 +59,6 @@
                             <div class="col-md-6">
                                 <select id="role" class="form-control @error('role') is-invalid @enderror" name="role" required>
                                     <option value="cashier">Cashier</option>
-                                    <option value="manager">Manager</option>
                                 </select>
                                 @error('role')
                                     <span class="invalid-feedback" role="alert">
@@ -85,7 +84,6 @@
                                 @enderror
                             </div>
                         </div>
-                        
 
                         <div class="row mb-0">
                             <div class="col-md-6 offset-md-4">
@@ -100,15 +98,4 @@
         </div>
     </div>
 </div>
-
-{{-- <script>
-    document.getElementById('role').addEventListener('change', function () {
-        var storeSection = document.getElementById('store-section');
-        if (this.value == 'cashier') {
-            storeSection.style.display = 'block';
-        } else {
-            storeSection.style.display = 'none';
-        }
-    });
-</script> --}}
 @endsection

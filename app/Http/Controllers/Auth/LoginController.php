@@ -24,7 +24,7 @@ class LoginController extends Controller
             return '/manager-dashboard';
         } 
         // Default dashboard (cashier)
-        return '/cashier-dashboard';
+        return '/home';
     }
 
     /**

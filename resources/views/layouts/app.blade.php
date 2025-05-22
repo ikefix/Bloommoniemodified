@@ -18,64 +18,148 @@
 </head>
 <body>
     <div id="app">
-        <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
-            <div class="container">
-                <a class="navbar-brand" href="{{ url('/') }}">
-                    {{ config('app.name', 'Laravel') }}
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <!-- Left Side Of Navbar -->
-                    <ul class="navbar-nav me-auto">
-
-                    </ul>
-
-                    <!-- Right Side Of Navbar -->
-                    <ul class="navbar-nav ms-auto">
-                        <!-- Authentication Links -->
-                        @guest
-                            @if (Route::has('login'))
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
-                                </li>
-                            @endif
-
-                            @if (Route::has('register'))
-                                <li class="nav-item">
-                                    {{-- <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a> --}}
-                                </li>
-                            @endif
-                        @else
-                            <li class="nav-item dropdown admin-dash">
-                                <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                    {{ Auth::user()->name }}
-                                </a>
-                                {{-- <a class="nav-link" href="{{ url('addstaff') }}">Add Staff</a> --}}
-
-                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                    <a class="dropdown-item" href="{{ route('logout') }}"
-                                       onclick="event.preventDefault();
-                                                     document.getElementById('logout-form').submit();">
-                                        {{ __('Logout') }}
-                                    </a>
-
-                                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                                        @csrf
-                                    </form>
-                                </div>
-                            </li>
-                        @endguest
-                    </ul>
-                </div>
-            </div>
-        </nav>
+        @include('includes.nav')
 
         <main class="py-4">
             @yield('content')
         </main>
     </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+{{-- CHECK STOCK --}}
+<script>
+    $(document).ready(function () {
+        let selectedProductId = null;
+        let currentStock = null;
+
+        // Track selected product ID
+        $(document).on('click', '.suggestion-item', function () {
+            selectedProductId = $(this).data('product-id');
+            let productPrice = $(this).data('product-price');
+
+            // Fetch current stock for the selected product
+            $.get(`/api/product/${selectedProductId}`, function (data) {
+                currentStock = data.stock_quantity;
+            });
+        });
+
+        // On form submit, validate stock before proceeding
+        $('form').on('submit', function (e) {
+            const quantity = parseInt($('#quantity').val());
+
+            // If stock hasn't been fetched yet, let it go through
+            if (!currentStock || !selectedProductId) return;
+
+            if (quantity > currentStock) {
+                e.preventDefault();
+
+                // Remove any existing warning
+                $('#stock-warning').remove();
+
+                // Add new warning below quantity field
+                const warning = `<small id="stock-warning" class="text-danger d-block mt-1">Quantity is above remaining stock (${currentStock} left)</small>`;
+                $('#quantity').after(warning);
+            }
+        });
+    });
+</script>
+
+<script>
+    $(document).ready(function () {
+        // Handle product search input
+        $('#product_name').on('input', function () {
+            let query = $(this).val();
+
+            if (query.length < 1) {
+                $('#product_suggestions').empty().hide();
+                $('#product-error').hide();
+                return;
+            }
+
+            $.get(`/products/search-suggestions`, { query: query }, function (data) {
+                if (data.length > 0) {
+                    let suggestions = '<ul class="list-group" style="margin: 0;">';
+                    let escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape query for regex
+                    let regex = new RegExp(escapedQuery, 'i');
+
+                    data.forEach(function (product) {
+                        let highlightedName = product.name.replace(regex, function (match) {
+                            return `<strong style="color: #007bff;">${match}</strong>`;
+                        });
+
+                        suggestions += `<li data-product-id="${product.id}" data-product-price="${product.price}" class="list-group-item suggestion-item" style="cursor: pointer;">${highlightedName}</li>`;
+                    });
+
+                    suggestions += '</ul>';
+                    $('#product_suggestions').html(suggestions).show();
+                    $('#product-error').hide();
+                } else {
+                    $('#product_suggestions').empty().hide();
+                    $('#product-error').show();
+                }
+            });
+        });
+
+        // Autofill product info when a suggestion is clicked
+        $(document).on('click', '.suggestion-item', function () {
+            let productName = $(this).text();
+            let productId = $(this).data('product-id');
+            let productPrice = $(this).data('product-price');
+
+            $('#product_name').val(productName);
+            $('#product').val(productId);
+            $('#price').val(productPrice); // Display the price
+            $('#product_suggestions').empty().hide();
+
+            // Clear the total price field
+            $('#total_price').val('');
+        });
+
+        // Calculate total price when quantity is entered
+        $('#quantity').on('input', function () {
+        let quantity = $(this).val();
+        let price = $('#price').val();
+
+        if (quantity && price) {
+            let totalPrice = quantity * price;
+            $('#total_price').val(totalPrice);
+        } else {
+            // If quantity is empty, clear the total price field
+            $('#total_price').val('');
+        }
+    });
+
+        // Optional: Hide suggestions when clicking outside
+        $(document).click(function (e) {
+            if (!$(e.target).closest('#product_name, #product_suggestions').length) {
+                $('#product_suggestions').hide();
+            }
+        });
+    });
+</script>
+
+
+{{-- FOR PRODUCT UPDATE PRODUCT --}}
+<!-- Bootstrap JS (make sure you include this for alert close functionality) -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<script>
+    document.getElementById('category_id').addEventListener('change', function () {
+        const categoryId = this.value;
+        fetch(`/products/by-category/${categoryId}`)
+            .then(res => res.json())
+            .then(data => {
+                const dataList = document.getElementById('product_suggestions');
+                dataList.innerHTML = '';
+                data.forEach(product => {
+                    const option = document.createElement('option');
+                    option.value = product.name;
+                    dataList.appendChild(option);
+                });
+            });
+    });
+</script>
+
+
+
+
 </body>
 </html>

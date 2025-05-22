@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Shop;
 use Illuminate\Support\Facades\Auth;
 
 class RoleController extends Controller
@@ -15,8 +16,13 @@ class RoleController extends Controller
             return abort(403, 'Unauthorized action.');
         }
 
-        $users = User::where('role', '!=', 'admin')->get(); // Do not show other admins
-        return view('admin.manage_roles', compact('users'));
+        $users = User::with('shop')
+            ->where('role', '!=', 'admin')
+            ->get();
+        
+        $shops = Shop::all();
+
+        return view('admin.manage_roles', compact('users', 'shops'));
     }
 
     public function updateRole(Request $request, $id)

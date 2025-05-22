@@ -11,7 +11,7 @@ class AdminMiddleware
     public function handle(Request $request, Closure $next)
     {
         if (!Auth::check() || Auth::user()->role !== 'admin') {
-            return redirect('/cashier-dashboard')->with('error', 'Unauthorized Access');
+            return redirect('/home')->with('error', 'Unauthorized Access');
         }
 
         return $next($request);

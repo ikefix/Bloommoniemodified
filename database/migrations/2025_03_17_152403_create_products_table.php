@@ -9,20 +9,23 @@ return new class extends Migration {
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('category_id'); // ✅ Ensure this matches categories.id
+
+            // 🔗 Foreign Keys
+            $table->unsignedBigInteger('category_id');
+            $table->unsignedBigInteger('shop_id'); // ⬅️ Added this
+
+            // 📦 Product Fields
             $table->string('name');
-            $table->text('description')->nullable();
             $table->decimal('price', 10, 2);
             $table->decimal('cost_price', 10, 2);
             $table->integer('stock_quantity')->default(0);
-            $table->integer('reorder_level')->default(10);
-            $table->string('barcode', 50)->unique();
+            $table->integer('stock_limit')->nullable()->default(0);
             $table->timestamps();
-        
-            // ✅ Foreign key constraint
+
+            // 🔐 Constraints
             $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
+            $table->foreign('shop_id')->references('id')->on('shops')->onDelete('cascade'); // ⬅️ Add constraint
         });
-        
     }
 
     public function down()
@@ -30,7 +33,3 @@ return new class extends Migration {
         Schema::dropIfExists('products');
     }
 };
-
-
-
-

@@ -1,6 +1,6 @@
-@extends('layouts.adminapp')
+@extends('layouts.managerapp')
 
-@section('admincontent')
+@section('managercontent')
 <div class="container">
     <h2>Manage User Roles</h2>
     @if(session('success'))
@@ -14,8 +14,6 @@
                 <th>Email</th>
                 <th>Current Role</th>
                 <th>Change Role</th>
-                <th>Action</th>
-                <th>Store</th>
             </tr>
         </thead>
         <tbody>
@@ -24,7 +22,7 @@
                     <td>{{ $user->name }}</td>
                     <td>{{ $user->email }}</td>
                     <td>{{ ucfirst($user->role) }}</td>
-                    <td>
+                    {{-- <td>
                         <form action="{{ route('admin.updateRole', $user->id) }}" method="POST">
                             @csrf
                             @method('PATCH')
@@ -35,7 +33,7 @@
                             </select>
                             <button type="submit" class="btn btn-primary btn-sm mt-2">Update</button>
                         </form>
-                    </td>
+                    </td> --}}
                     <td>
                         <form action="{{ route('admin.deleteUser', $user->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this user?');">
                             @csrf
@@ -43,15 +41,6 @@
                             <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                         </form>
                     </td>
-                    <td>
-                        <select name="shop_id" id="shop_id" class="form-control" required>
-                            <option value="">{{ $user->shop->name ?? 'Not assigned' }}</option>
-                            {{-- @foreach ($users as $user)
-                                <option value="">{{ $user->shop->name ?? 'Not assigned' }}</option>
-                            @endforeach --}}
-                        </select>
-                    </td>
-
                 </tr>
             @endforeach
         </tbody>

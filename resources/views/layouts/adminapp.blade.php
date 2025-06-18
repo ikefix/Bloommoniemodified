@@ -29,10 +29,10 @@
             const sidebar = document.getElementById('adminSidebar');
             sidebar.classList.toggle('sidebar-collapsed');
     
-            // const texts = sidebar.querySelectorAll('.sidebar-text');
-            // texts.forEach(text => {
-            //     text.style.display = sidebar.classList.contains('sidebar-collapsed') ? 'none' : 'inline';
-            // });
+            const texts = sidebar.querySelectorAll('.sidebar-text');
+            texts.forEach(text => {
+                text.style.display = sidebar.classList.contains('sidebar-collapsed') ? 'inline' : 'none';
+            });
         });
     </script>
 <script>
@@ -43,6 +43,7 @@
         submenu.classList.toggle('show');
         arrow.classList.toggle('rotate');
     }
+    
     </script>
     
     

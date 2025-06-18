@@ -34,7 +34,7 @@ class ShopController extends Controller
             'location' => $request->location,
         ]);
     
-        return redirect()->route('shops.index')->with('success', 'Shop created successfully.');
+        return redirect()->route('shops.create')->with('success', 'Shop created successfully.');
     }
 
     public function edit($id)

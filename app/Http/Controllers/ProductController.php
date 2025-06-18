@@ -61,6 +61,42 @@ class ProductController extends Controller
 //     return redirect()->route('products.create');
 // }
 
+// public function store(Request $request)
+// {
+//     $user = Auth::user();
+
+//     // Authorization logic
+//     if ($user->role === 'manager') {
+//         $hasPermission = \App\Models\ProductPermission::where('manager_id', $user->id)->exists();
+
+//         if (!$hasPermission) {
+//             abort(403, 'You are not allowed to add products.');
+//         }
+//     } elseif ($user->role !== 'admin') {
+//         abort(403, 'Unauthorized action.');
+//     }
+
+//     // Validation
+//     $request->validate([
+//         'category_id' => 'required|exists:categories,id',
+//         'shop_id' => 'required|exists:shops,id', // 💥 Add this line
+//         'name' => 'required|string|max:255',
+//         'price' => 'required|numeric|min:0',
+//         'cost_price' => 'required|numeric|min:0',
+//         'stock_quantity' => 'required|integer|min:0',
+//     ]);
+
+//     // Product creation
+//     $product = Product::create($request->all());
+
+//     // Check and notify if stock is low
+//     $this->checkStockNotification($product);
+
+//     session()->flash('success', 'Product stocked successfully!');
+//     return redirect()->route('products.create');
+// }
+
+
 public function store(Request $request)
 {
     $user = Auth::user();
@@ -79,23 +115,34 @@ public function store(Request $request)
     // Validation
     $request->validate([
         'category_id' => 'required|exists:categories,id',
-        'shop_id' => 'required|exists:shops,id', // 💥 Add this line
+        'shop_id' => 'required|exists:shops,id',
         'name' => 'required|string|max:255',
         'price' => 'required|numeric|min:0',
         'cost_price' => 'required|numeric|min:0',
         'stock_quantity' => 'required|integer|min:0',
     ]);
 
-    // Product creation
-    $product = Product::create($request->all());
+    // Check if product already exists in the same shop & category
+    $existingProduct = Product::where('name', $request->name)
+        ->where('shop_id', $request->shop_id)
+        ->where('category_id', $request->category_id)
+        ->first();
 
-    // Check and notify if stock is low
+    if ($existingProduct) {
+        session()->flash('error', 'Product already exists in this shop and category.');
+        return redirect()->back()->withInput();
+    }
+
+    // Safe creation
+    $data = $request->only(['category_id', 'shop_id', 'name', 'price', 'cost_price', 'stock_quantity']);
+    $product = Product::create($data);
+
+    // Stock check
     $this->checkStockNotification($product);
 
     session()->flash('success', 'Product stocked successfully!');
     return redirect()->route('products.create');
 }
-
 
 
 

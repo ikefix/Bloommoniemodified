@@ -1,7 +1,7 @@
 @extends('layouts.adminapp')
 
 @section('admincontent')
-<div class="container product-con">
+<div class="container">
     
     <div class="flex-container">
 
@@ -30,7 +30,6 @@
                     @endforeach
                 </select>
             </div>
-
         
             <!-- Select Category -->
             <div class="mb-3">

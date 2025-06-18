@@ -65,7 +65,13 @@ class StockTransferController extends Controller
             $destProduct->stock_quantity += $request->quantity;
             $destProduct->save();
         } else {
-            // If the product doesn't exist in the destination shop, create a new product entry
+        // Double-check by name + category in case same product exists under diff ID
+        $existing = Product::where('name', $product->name)
+                        ->where('category_id', $product->category_id)
+                        ->where('shop_id', $request->to_shop_id)
+                        ->first();
+
+        if (!$existing) {
             Product::create([
                 'name' => $product->name,
                 'category_id' => $product->category_id,
@@ -75,7 +81,12 @@ class StockTransferController extends Controller
                 'stock_quantity' => $request->quantity,
                 'stock_limit' => $product->stock_limit,
             ]);
+        } else {
+            // Optional safety: just update stock instead of duplicate
+            $existing->stock_quantity += $request->quantity;
+            $existing->save();
         }
+    }
 
         // Redirect with success message
         return redirect()->back()->with('success', 'Stock transfer completed successfully!');
@@ -91,4 +102,12 @@ class StockTransferController extends Controller
         // Return the view with the data
         return view('stock-transfers.create', compact('shops', 'products', 'categories'));
     }
+
+
+    public function getProductsByShop($shopId)
+{
+    $products = Product::where('shop_id', $shopId)->get(['id', 'name']); // select only what's needed
+    return response()->json($products);
+}
+
 }

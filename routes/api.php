@@ -26,3 +26,4 @@ Route::apiResource('categories', CategoryController::class);
 Route::apiResource('products', ProductController::class);
 
 Route::get('products/search', [ProductController::class, 'search']);
+

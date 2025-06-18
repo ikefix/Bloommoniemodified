@@ -41,6 +41,13 @@ class User extends Authenticatable
         return $this->hasMany(StockTransfer::class, 'to_shop_id');
     }
 
+    // User.php
+public function shop()
+{
+    return $this->belongsTo(Shop::class);
+}
+
+
     
 }
 

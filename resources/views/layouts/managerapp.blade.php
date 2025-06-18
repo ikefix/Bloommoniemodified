@@ -31,7 +31,7 @@
     
             const texts = sidebar.querySelectorAll('.sidebar-text');
             texts.forEach(text => {
-                text.style.display = sidebar.classList.contains('sidebar-collapsed') ? 'none' : 'inline';
+                text.style.display = sidebar.classList.contains('sidebar-collapsed') ? 'inline' : 'none';
             });
         });
     </script>

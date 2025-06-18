@@ -37,7 +37,7 @@ Route::get('/admin', [AdminController::class, 'index'])->middleware('role:admin'
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/admin-dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard')->middleware('role:admin');
-    Route::get('/manager-dashboard', [ManagerController::class, 'index'])->name('manager.dashboard')->middleware('role:manager');
+    // Route::get('/manager-dashboard', [ManagerController::class, 'index'])->name('manager.dashboard')->middleware('role:manager');
 });
 
 // FOR MANAGER
@@ -58,6 +58,8 @@ Route::patch('/manager/update-role/{id}', [ManagerController::class, 'updateRole
 
 Route::get('/manager/products', [ManagerController::class, 'viewProducts'])->name('manager.product');
 
+
+    Route::get('/manager-dashboard', [ManagerController::class, 'dashboard'])->name('manager.jop')->middleware('role:manager');
 
 Route::post('/manager/register', [ManagerController::class, 'storeStaff'])->name('manager.storeStaff');
 
@@ -177,3 +179,14 @@ Route::middleware(['auth'])->group(function () {
 // Route to display the stock transfer form
 Route::get('/stock-transfers/create', [StockTransferController::class, 'create'])->name('stock-transfers.create');
 Route::post('/stock-transfers', [StockTransferController::class, 'store'])->name('stock-transfers.store');
+
+
+// Route::get('/shops/{shop}/products', function (\App\Models\Shop $shop) {
+//     $products = $shop->products()->with('category')->get();
+//     return response()->json(['products' => $products]);
+// });
+
+Route::get('/products-by-shop/{shopId}', [StockTransferController::class, 'getProductsByShop']);
+// Route::get('/products-by-shop/{shopId}', [App\Http\Controllers\ProductController::class, 'getProductsByShop']);
+
+Route::delete('/products/{id}', [ProductController::class, 'destroy'])->name('products.destroy');

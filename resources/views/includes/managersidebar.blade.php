@@ -50,19 +50,19 @@
                 <span class="arrow">&#9662;</span> <!-- down arrow -->
             </button>
             <div class="submenu">
-                <a href="{{ route('manager.manage_role') }}" class="submenu-link">
+                <a href="{{ route('manager.manage_role') }}" class="sidebar-link">
                     <span class="sidebar-icon">🛠️</span>
                     <span class="sidebar-text">Manage Users</span>
                 </a>
-                <a href="{{ route('manager.register') }}" class="submenu-link">
+                <a href="{{ route('manager.register') }}" class="sidebar-link">
                     <span class="sidebar-icon">➕</span>
                     <span class="sidebar-text">Add Staff</span>
                 </a>
             </div>
-            <a href="{{ route('manager.profile') }}" class="sidebar-link">
+            {{-- <a href="{{ route('manager.profile') }}" class="sidebar-link">
                 <span class="sidebar-icon">🧑‍💼</span>
                 <span class="sidebar-text">Profile</span>
-            </a>
+            </a> --}}
             <a id="navbarDropdown" class="sidebar-link" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
                 <span class="sidebar-icon">👤</span> <!-- Profile Icon -->
                 <span class="sidebar-text">{{ Auth::user()->name }}</span> <!-- User's name -->

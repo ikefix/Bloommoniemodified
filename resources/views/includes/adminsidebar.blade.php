@@ -42,17 +42,17 @@
                 <span class="sidebar-icon">🛡️</span>
                 <span class="sidebar-text">Permissions</span>
             </a>         
-            <button class="sidebar-link collapsible-btn" onclick="toggleSubmenu(this)">
+            <a class="sidebar-link collapsible-btn" onclick="toggleSubmenu(this)">
                 <span class="sidebar-icon">👥</span>
                 <span class="sidebar-text">Users</span>
                 <span class="arrow">&#9662;</span> <!-- down arrow -->
-            </button>
+            </a>
             <div class="submenu">
-                <a href="{{ route('admin.manage_roles') }}" class="submenu-link">
+                <a href="{{ route('admin.manage_roles') }}" class="sidebar-link">
                     <span class="sidebar-icon">🛠️</span>
                     <span class="sidebar-text">Manage Users</span>
                 </a>
-                <a href="{{ route('admin.register') }}" class="submenu-link">
+                <a href="{{ route('admin.register') }}" class="sidebar-link">
                     <span class="sidebar-icon">➕</span>
                     <span class="sidebar-text">Add Staff</span>
                 </a>

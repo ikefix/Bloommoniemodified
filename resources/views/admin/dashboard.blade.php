@@ -52,7 +52,7 @@
                 datasets: [{
                     label: 'Sales Trend',
                     data: {!! json_encode($salesTrendData ?? []) !!},
-                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                    backgroundColor: 'rgba(241, 10, 222, 1)',
                     borderColor: 'rgba(75, 192, 192, 1)',
                     fill: true
                 }]
@@ -73,7 +73,7 @@
                     label: 'Top Selling Products',
                     data: {!! json_encode($topSellingProductSales ?? []) !!},
                     backgroundColor: [
-                        'rgba(30, 136, 229, 0.9)',   // Electric blue
+                        'rgba(241, 10, 222, 0.9)',   // Electric blue
                         'rgba(94, 53, 177, 0.9)',    // Deep purple
                         'rgba(255, 87, 34, 0.9)',    // Burnt orange
                         'rgba(46, 125, 50, 0.9)',    // Dark green

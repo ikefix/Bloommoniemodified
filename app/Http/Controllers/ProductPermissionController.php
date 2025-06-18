@@ -3,17 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Shop;
 use App\Models\ProductPermission;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ProductPermissionController extends Controller
 {
     public function show()
     {
-        $managers = User::where('role', 'manager')->get();
+        $managers = User::where('role', 'manager')->with('shop')->get();
         $permissions = ProductPermission::pluck('manager_id')->toArray();
+        $shops = Auth::user()->shops ?? collect(); // fallback to empty collection
 
-        return view('admin.manage-manager-permissions', compact('managers', 'permissions'));
+        return view('admin.manage-manager-permissions', compact('managers', 'permissions', 'shops'));
     }
 
     public function grantAccess(Request $request)

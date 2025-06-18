@@ -203,4 +203,75 @@ class ManagerController extends Controller
 //     return redirect()->route('manager.product');
 // }
 
+
+public function dashboard()
+{   
+    // Start of the week (Monday)
+    $startOfWeek = Carbon::now()->startOfWeek(); // default is Monday
+    $endOfWeek = Carbon::now()->endOfWeek();     // Sunday
+    $today = Carbon::today();
+
+    // 💸 Total sales today
+    $totalSalesThisWeek = PurchaseItem::whereBetween('created_at', [$startOfWeek, $endOfWeek])
+    ->sum('total_price');
+
+    // 💰 Revenue today (same for now)
+    $totalRevenueToday =  PurchaseItem::whereDate('created_at', $today)
+    ->sum('total_price');
+
+    // 📦 Count of products still in stock
+    $productsInStock = Product::where('stock_quantity', '>', 0)->count();
+
+    // 🧾 Top selling products *for today only*
+    $topSelling = PurchaseItem::whereDate('created_at', $today)
+        ->select('product_id', DB::raw('SUM(quantity) as total_sold'))
+        ->groupBy('product_id')
+        ->orderByDesc('total_sold')
+        ->with('product') // eager load product
+        ->take(5)
+        ->get();
+
+    // 🥧 Pie chart data
+    $topSellingProductNames = [];
+    $topSellingProductSales = [];
+
+    foreach ($topSelling as $item) {
+        $topSellingProductNames[] = $item->product->name ?? 'Unknown';
+        $topSellingProductSales[] = $item->total_sold;
+    }
+
+    // 📈 Sales trend over the last 7 days
+    $salesTrend = PurchaseItem::select(
+            DB::raw('DATE(created_at) as date'),
+            DB::raw('SUM(total_price) as total')
+        )
+        ->whereDate('created_at', '>=', now()->subDays(6))
+        ->groupBy('date')
+        ->orderBy('date')
+        ->get();
+
+    $salesTrendLabels = [];
+    $salesTrendData = [];
+
+    $dates = collect(range(0, 6))->map(function ($daysAgo) {
+        return Carbon::today()->subDays($daysAgo)->format('Y-m-d');
+    })->reverse();
+
+    foreach ($dates as $date) {
+        $salesTrendLabels[] = Carbon::parse($date)->format('M d');
+        $daySale = $salesTrend->firstWhere('date', $date);
+        $salesTrendData[] = $daySale ? $daySale->total : 0;
+    }
+
+    return view('manager.dashboard', compact(
+        'totalSalesThisWeek',
+        'totalRevenueToday',
+        'productsInStock',
+        'topSelling',
+        'topSellingProductNames',
+        'topSellingProductSales',
+        'salesTrendLabels',
+        'salesTrendData'
+    ));
+}
 }

@@ -58,7 +58,7 @@
                 </a>
             </div>
             <a href="{{ route('admin.profile') }}" class="sidebar-link">
-                <span class="sidebar-icon">🧑‍💼</span>
+                <span class="sidebar-icon">🧑</span>
                 <span class="sidebar-text">Profile</span>
             </a>
             <a id="navbarDropdown" class="sidebar-link" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>

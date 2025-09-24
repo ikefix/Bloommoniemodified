@@ -103,16 +103,15 @@ form.addEventListener('submit', function (e) {
         .then(data => {
             const availableStock = data.stock;
 
-            // Check if the requested quantity is available
             if (quantity > availableStock) {
                 alert(`Not enough stock for ${name}. Available: ${availableStock}`);
-                return; // Stop further execution if stock is insufficient
+                return;
             }
 
-            // If stock is sufficient, add the product to the list
+            // Add product to cart
             productsList.push({ name, price, productId, quantity, paymentMethod, stock: availableStock });
 
-            // Reset form fields after adding product to the list
+            // Reset fields
             document.querySelector('#product_name').value = '';
             document.querySelector('#product').value = '';
             document.querySelector('#price').value = '';
@@ -120,11 +119,9 @@ form.addEventListener('submit', function (e) {
             document.querySelector('#total_price').value = '';
             document.querySelector('#payment_method').value = '';
 
-            // Update preview and final form with the new product list
             updateCartPreview();
             updateFinalForm();
 
-            // Make the preview box visible
             previewBox.classList.remove('d-none');
         })
         .catch(err => {
@@ -132,7 +129,6 @@ form.addEventListener('submit', function (e) {
             alert('Could not check stock 😵');
         });
 });
-
 
 function updateCartPreview() {
     previewBody.innerHTML = '';
@@ -146,14 +142,22 @@ function updateCartPreview() {
         itemDiv.classList.add('mb-2', 'border-bottom', 'pb-2');
 
         itemDiv.innerHTML = `
-            <p><strong>Product:</strong> <span id="preview-name-${index}">${item.name}</span></p>
-            <p><strong>Price:</strong> ₦<span id="preview-price-${index}">${item.price.toFixed(2)}</span></p>
+            <p><strong>Product:</strong> ${item.name}</p>
+            <p><strong>Price:</strong> ₦${item.price.toFixed(2)}</p>
             <p><strong>Quantity:</strong> 
                 <button type="button" class="btn btn-sm btn-secondary minus-btn" data-index="${index}">−</button>
                 <span id="preview-quantity-${index}">${item.quantity}</span>
                 <button type="button" class="btn btn-sm btn-secondary plus-btn" data-index="${index}">+</button>
             </p>
             <p><strong>Total:</strong> ₦<span id="preview-total-${index}">${subtotal.toFixed(2)}</span></p>
+            <p><strong>Payment:</strong>
+                <select class="form-control form-control-sm payment-select" data-index="${index}">
+                    <option value="cash" ${item.paymentMethod === 'cash' ? 'selected' : ''}>Cash</option>
+                    <option value="card" ${item.paymentMethod === 'card' ? 'selected' : ''}>Card</option>
+                    <option value="transfer" ${item.paymentMethod === 'transfer' ? 'selected' : ''}>Transfer</option>
+                </select>
+            </p>
+            <button type="button" class="btn btn-sm btn-danger remove-btn" data-index="${index}">❌ Remove</button>
         `;
 
         previewBody.appendChild(itemDiv);
@@ -167,6 +171,8 @@ function updateCartPreview() {
     previewBody.appendChild(finalForm);
 
     attachQtyListeners();
+    attachRemoveListeners();
+    attachPaymentListeners();
 }
 
 function attachQtyListeners() {
@@ -189,18 +195,35 @@ function attachQtyListeners() {
     });
 }
 
+function attachRemoveListeners() {
+    document.querySelectorAll('.remove-btn').forEach(btn => {
+        btn.onclick = function () {
+            const index = parseInt(this.dataset.index);
+            productsList.splice(index, 1); // remove product
+            updateCartPreview();
+            updateFinalForm();
+        };
+    });
+}
+
+function attachPaymentListeners() {
+    document.querySelectorAll('.payment-select').forEach(select => {
+        select.onchange = function () {
+            const index = parseInt(this.dataset.index);
+            productsList[index].paymentMethod = this.value;
+            updateFinalForm();
+        };
+    });
+}
+
 function refreshQty(index) {
     const item = productsList[index];
     const newTotal = item.price * item.quantity;
 
-    // Update UI
     document.getElementById(`preview-quantity-${index}`).textContent = item.quantity;
     document.getElementById(`preview-total-${index}`).textContent = newTotal.toFixed(2);
 
-    // Update total sum
     updateCartTotal();
-
-    // Update form values
     updateFinalForm();
 }
 
@@ -217,12 +240,12 @@ function updateFinalForm() {
         finalForm.innerHTML += `
             <input type="hidden" name="products[${index}][product_id]" value="${item.productId}">
             <input type="hidden" name="products[${index}][quantity]" value="${item.quantity}">
+            <input type="hidden" name="products[${index}][payment_method]" value="${item.paymentMethod}">
         `;
     });
 
     if (productsList.length) {
         finalForm.innerHTML += `
-            <input type="hidden" name="payment_method" value="${productsList[0].paymentMethod}">
             <button type="submit" class="btn btn-success mt-2">✅ Complete</button>
         `;
     }
@@ -248,10 +271,7 @@ finalForm.addEventListener('submit', function (e) {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            // ✅ Open receipt in new tab using one of the product items (same transaction)
             window.open(`/purchaseitem/receipt/${data.receipt_id}`, '_blank');
-
-            // 🔄 Reset cashier UI
             productsList = [];
             updateCartPreview();
             alert('Sale completed successfully! 💸');
@@ -264,12 +284,5 @@ finalForm.addEventListener('submit', function (e) {
         alert('Network/server error 😵');
     });
 });
-
-
-
 </script>
-
-
-
-
 @endsection

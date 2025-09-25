@@ -3,14 +3,54 @@
 <head>
     <title>Receipt</title>
     <style>
-        body { font-family: sans-serif; }
-        .receipt-box { padding: 20px; border: 1px solid #000; width: 300px; margin: auto; }
-        .total { font-weight: bold; }
-        .actions { margin-top: 20px; text-align: center; }
-        button { margin: 5px; padding: 10px 15px; }
-        .header { text-align: center; margin-bottom: 15px; }
-        .header h3 { margin: 0; }
-        .header p { margin: 2px 0; font-size: 14px; }
+        body {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            margin: 0;
+            padding: 0;
+            /* width: 58mm; For 58mm printer, change to 80mm if needed */
+            width: 70mm;
+        }
+        .receipt-box {
+            padding: 5px;
+            width: 100%;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        .header h3 {
+            margin: 0;
+            font-size: 14px;
+        }
+        .header p {
+            margin: 2px 0;
+            font-size: 12px;
+        }
+        hr {
+            border: 0;
+            border-top: 1px dashed #000;
+            margin: 5px 0;
+        }
+        .item-line {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+        .total {
+            font-weight: bold;
+            text-align: right;
+            font-size: 13px;
+        }
+        .actions {
+            margin-top: 10px;
+            text-align: center;
+        }
+        button {
+            margin: 3px;
+            padding: 5px 10px;
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
@@ -23,10 +63,16 @@
 
         <hr>
         @foreach ($items as $item)
-            <p>{{ $item->product->name }} x {{ $item->quantity }} - ₦{{ number_format($item->total_price, 2) }}</p>
+            <div class="item-line">
+                <span>{{ $item->product->name }} x {{ $item->quantity }}</span>
+                <span>₦{{ number_format($item->total_price, 2) }}</span>
+            </div>
         @endforeach
         <hr>
         <p class="total">Total: ₦{{ number_format($total, 2) }}</p>
+        <hr>
+
+        <p style="text-align:center; font-size:11px;">Thanks for your purchase 🙏</p>
 
         <div class="actions">
             <button onclick="window.print()">🖨️ Print</button>
@@ -41,7 +87,7 @@
         }
     </script>
 
-    <!-- 💡 Add this script library from CDN -->
+    <!-- PDF library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </body>
 </html>

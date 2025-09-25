@@ -170,7 +170,7 @@ class PurchaseItemController extends Controller
 
 public function showReceipt(Request $request, $id)
 {
-    $item = PurchaseItem::findOrFail($id);
+    $item = PurchaseItem::with('shop')->findOrFail($id); // load shop relation
     $transactionId = $item->transaction_id;
 
     $items = PurchaseItem::with('product')
@@ -179,17 +179,21 @@ public function showReceipt(Request $request, $id)
 
     $total = $items->sum('total_price');
 
+    $cashier = auth()->check() ? auth()->user()->name : 'Unknown Cashier';
+    $shopName = $item->shop ? $item->shop->name : 'Unknown Shop';
+
     if ($request->wantsJson()) {
         return response()->json([
-            'success' => true,
+            'success'        => true,
             'transaction_id' => $transactionId,
-            'items' => $items,
-            'total' => $total,
+            'items'          => $items,
+            'total'          => $total,
+            'cashier'        => $cashier,
+            'shop'           => $shopName,
         ]);
     }
 
-    // Default → Blade receipt view for browser printing
-    return view('receipts.receipt', compact('items', 'total'));
+    return view('receipts.receipt', compact('items', 'total', 'cashier', 'shopName'));
 }
 
 }

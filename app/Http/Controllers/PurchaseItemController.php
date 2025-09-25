@@ -35,55 +35,73 @@ class PurchaseItemController extends Controller
     }
 
     // Store the purchase item and update stock
-    public function store(Request $request)
+   public function store(Request $request)
 {
-    $validated = $request->validate([
-        'products' => 'required|array|min:1',
-        'products.*.product_id' => 'required|exists:products,id',
-        'products.*.quantity' => 'required|integer|min:1',
-        'payment_method' => 'required|in:cash,card,transfer',
-    ]);
-
-    // Generate a transaction ID (timestamp + random suffix to avoid collisions)
-    $transactionId = 'TXN-' . now()->format('YmdHis') . '-' . rand(1000, 9999);
-    $lastPurchase = null;
-
-    foreach ($validated['products'] as $item) {
-        $product = Product::findOrFail($item['product_id']);
-        $quantityRequested = $item['quantity'];
-
-        if ($product->stock_quantity < $quantityRequested) {
-            return back()->withErrors([
-                'stock' => "Not enough stock for {$product->name}. Available: {$product->stock_quantity}"
-            ]);
-        }
-
-        // Save purchase with transaction ID
-        $lastPurchase = PurchaseItem::create([
-            'product_id' => $product->id,
-            'category_id' => $product->category_id,
-            'quantity' => $quantityRequested,
-            'total_price' => $product->price * $quantityRequested,
-            'payment_method' => $validated['payment_method'],
-            'transaction_id' => $transactionId, // 🆕
-            'shop_id' => $product->shop_id, // ✅ Here’s the fix
+    try {
+        // validate safely
+        $validated = $request->validate([
+            'products' => 'required|array|min:1',
+            'products.*.product_id' => 'required|exists:products,id',
+            'products.*.quantity' => 'required|integer|min:1',
+            'payment_method' => 'required|in:cash,card,transfer',
         ]);
 
-        // Update stock
-        $product->stock_quantity -= $quantityRequested;
-        $product->save();
+        $transactionId = 'TXN-' . now()->format('YmdHis') . '-' . rand(1000, 9999);
+        $lastPurchase = null;
 
-        // Check if stock is low and notify admins
-        if ($product->stock_quantity <= $product->stock_limit) {
-            $admins = User::whereIn('role', ['admin', 'manager'])->get();
-            Notification::send($admins, new LowStockAlert($product));
+        foreach ($validated['products'] as $item) {
+            $product = Product::findOrFail($item['product_id']);
+            $quantityRequested = $item['quantity'];
+
+            // Stock check → JSON response
+            if ($product->stock_quantity < $quantityRequested) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Not enough stock for {$product->name}. Available: {$product->stock_quantity}"
+                ], 400);
+            }
+
+            // Save purchase
+            $lastPurchase = PurchaseItem::create([
+                'product_id'     => $product->id,
+                'category_id'    => $product->category_id,
+                'quantity'       => $quantityRequested,
+                'total_price'    => $product->price * $quantityRequested,
+                'payment_method' => $validated['payment_method'],
+                'transaction_id' => $transactionId,
+                'shop_id'        => $product->shop_id,
+            ]);
+
+            // Update stock
+            $product->decrement('stock_quantity', $quantityRequested);
+
+            // Low stock notification
+            if ($product->stock_quantity <= $product->stock_limit) {
+                $admins = User::whereIn('role', ['admin', 'manager'])->get();
+                Notification::send($admins, new LowStockAlert($product));
+            }
         }
-    }
 
-    return response()->json([
-        'success' => true,
-        'receipt_id' => $lastPurchase->id  // Send the purchase item's ID
-    ]);
+        return response()->json([
+            'success'    => true,
+            'receipt_id' => $lastPurchase->id,
+            'txn_id'     => $transactionId
+        ]);
+
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        // Validation error → JSON
+        return response()->json([
+            'success' => false,
+            'message' => $e->errors(),
+        ], 422);
+
+    } catch (\Exception $e) {
+        // Unexpected error → JSON
+        return response()->json([
+            'success' => false,
+            'message' => 'Server error: ' . $e->getMessage(),
+        ], 500);
+    }
 }
 
 
@@ -150,21 +168,28 @@ class PurchaseItemController extends Controller
             return view('manager.manage-sales', compact('sales', 'search', 'date'));
         }
 
-        public function showReceipt($id)
-        {
-            $item = PurchaseItem::findOrFail($id);
-            $transactionId = $item->transaction_id;
-        
-            $items = PurchaseItem::with('product')
-                ->where('transaction_id', $transactionId)
-                ->get();
-        
-            $total = $items->sum('total_price');
-        
-            return view('receipts.receipt', compact('items', 'total'));
-        }
-        
+public function showReceipt(Request $request, $id)
+{
+    $item = PurchaseItem::findOrFail($id);
+    $transactionId = $item->transaction_id;
 
-    
+    $items = PurchaseItem::with('product')
+        ->where('transaction_id', $transactionId)
+        ->get();
+
+    $total = $items->sum('total_price');
+
+    if ($request->wantsJson()) {
+        return response()->json([
+            'success' => true,
+            'transaction_id' => $transactionId,
+            'items' => $items,
+            'total' => $total,
+        ]);
+    }
+
+    // Default → Blade receipt view for browser printing
+    return view('receipts.receipt', compact('items', 'total'));
+}
 
 }

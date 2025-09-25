@@ -259,16 +259,30 @@ finalForm.addEventListener('submit', function (e) {
         return;
     }
 
-    const formData = new FormData(finalForm);
+    // Build payload for backend
+    const payload = {
+        products: productsList.map(item => ({
+            product_id: item.productId,
+            quantity: item.quantity
+        })),
+        payment_method: productsList[0].paymentMethod // 👈 using first item’s method (or adjust if per-item)
+    };
 
     fetch(finalForm.action, {
         method: 'POST',
-        body: formData,
         headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json', // force JSON
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        }
+        },
+        body: JSON.stringify(payload)
     })
-    .then(res => res.json())
+    .then(res => {
+        if (!res.ok) {
+            return res.json().then(err => Promise.reject(err));
+        }
+        return res.json();
+    })
     .then(data => {
         if (data.success) {
             window.open(`/purchaseitem/receipt/${data.receipt_id}`, '_blank');
@@ -276,13 +290,14 @@ finalForm.addEventListener('submit', function (e) {
             updateCartPreview();
             alert('Sale completed successfully! 💸');
         } else {
-            alert('Failed to complete sale ❌');
+            alert('❌ ' + (data.message || 'Failed to complete sale'));
         }
     })
     .catch(err => {
-        console.error(err);
-        alert('Network/server error 😵');
+        console.error('Server/validation error:', err);
+        alert('⚠️ ' + (err.message || 'Network/server error'));
     });
 });
+
 </script>
 @endsection

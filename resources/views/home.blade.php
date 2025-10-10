@@ -6,7 +6,20 @@
 @section('content')
 <div class="container">
     <h2>Cashier Sales</h2>
+<!-- 🔍 Receipt Search by Tracking ID -->
+@if(session('error'))
+    <div class="alert alert-danger">{{ session('error') }}</div>
+@endif
+@if(session('success'))
+    <div class="alert alert-success">{{ session('success') }}</div>
+@endif
 
+<form action="{{ route('receipt.search') }}" method="GET" class="mb-4">
+    <div class="input-group">
+        <input type="text" name="transaction_id" class="form-control" placeholder="Enter Receipt Tracking ID" required>
+        <button type="submit" class="btn btn-primary">Search Receipt</button>
+    </div>
+</form>
     <form class="form" method="POST" action="{{ route('purchaseitem.store') }}">
         @csrf
 

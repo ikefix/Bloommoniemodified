@@ -26,13 +26,35 @@ class PurchaseItemController extends Controller
         return view('home', compact('categories'));
     }
 
-    // Get products based on the selected category (AJAX)
+    // Get products based on the selected category (AJAX)a
     public function getProductsByCategory($categoryId)
     {
         $products = Product::where('category_id', $categoryId)->get();
 
         return response()->json($products);
     }
+public function searchReceipt(Request $request)
+{
+    $request->validate([
+        'transaction_id' => 'required|string'
+    ]);
+
+    $transactionId = $request->transaction_id;
+
+    $items = PurchaseItem::with(['product', 'shop'])
+        ->where('transaction_id', $transactionId)
+        ->get();
+
+    if ($items->isEmpty()) {
+        return back()->with('error', 'Transaction not found');
+    }
+
+    $total = $items->sum('total_price');
+    $cashier = auth()->check() ? auth()->user()->name : 'Unknown Cashier';
+    $shopName = $items->first()->shop ? $items->first()->shop->name : 'Unknown Shop';
+
+    return view('receipts.receipt', compact('items', 'total', 'cashier', 'shopName', 'transactionId'));
+}
 
     // Store the purchase item and update stock
    public function store(Request $request)
@@ -61,7 +83,7 @@ class PurchaseItemController extends Controller
                 ], 400);
             }
 
-            // Save purchase
+            // Save purchaseaa
             $lastPurchase = PurchaseItem::create([
                 'product_id'     => $product->id,
                 'category_id'    => $product->category_id,

@@ -9,7 +9,7 @@
             margin: 0;
             padding: 0;
             /* width: 58mm; For 58mm printer, change to 80mm if needed */
-            width: 70mm;
+            width: 80mm;
         }
         .receipt-box {
             padding: 5px;
@@ -58,6 +58,7 @@
         <div class="header">
             <h3>{{ $shopName }}</h3>
             <p>Cashier: {{ $cashier }}</p>
+            <p>Transaction ID: {{ $items->first()->transaction_id }}</p>
             <p>Date: {{ $items->first()->created_at->format('Y-m-d H:i') }}</p>
         </div>
 

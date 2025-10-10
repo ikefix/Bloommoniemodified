@@ -1,67 +1,303 @@
 @extends('layouts.app')
 
+
 @vite(['resources/sass/app.scss', 'resources/js/app.js', 'resources/css/app.css'])
 
 @section('content')
+<div class="container">
+    <h2>Cashier Sales</h2>
 
-<div class="container py-4">
-    <h2 class="mb-4 fw-bold text-primary">📊 Sales For The Day</h2>
+    <form class="form" method="POST" action="{{ route('purchaseitem.store') }}">
+        @csrf
 
-    <div class="row g-3 align-items-end mb-4">
-        <div class="col-md-4">
-            <label for="search-input" class="form-label fw-semibold">Search Product</label>
-            <input type="text" id="search-input" class="form-control shadow-sm" placeholder="🔍 Type product name...">
+        <!-- Product Search Input -->
+        <div class="form-group">
+            <label for="product_name">Search Product</label>
+            <input type="text" id="product_name" class="form-control" placeholder="Search product name" autocomplete="off">
+            <div id="product_suggestions" class="suggestions-box"></div> <!-- Suggestions will be displayed here -->
+            <small id="product-error" class="text-danger" style="display: none;">Product does not exist</small>
         </div>
-        <div class="col-md-3">
-            <label for="date-input" class="form-label fw-semibold">Select Date</label>
-            <input type="date" id="date-input" class="form-control shadow-sm" value="{{ $date ?? now()->toDateString() }}">
-        </div>
-        <div class="col-md-3 mt-4 mt-md-0">
-            <button onclick="downloadReceipt()" class="btn btn-success w-100 shadow-sm">
-                📥 Download PDF
-            </button>
-        </div>
-    </div>
 
-    <div class="card shadow-sm">
-        <div class="card-body p-3" id="sales-table">
-            @include('admin.partials.sales_table')
+        <!-- Hidden Product ID Input -->
+        <input type="hidden" id="product" name="product_id">
+
+        <!-- Product Price Display (Non-editable) -->
+        <div class="form-group">
+            <label for="price">Price</label>
+            <input type="text" id="price" class="form-control" readonly>
+        </div>
+
+        <!-- Quantity Input -->
+        <div class="form-group">
+            <label for="quantity">Quantity</label>
+            <input type="number" id="quantity" name="quantity" class="form-control" required min='1'>
+        </div>
+
+        <!-- Total Price Display (Non-editable) -->
+        <div class="form-group">
+            <label for="total_price">Total Price</label>
+            <input type="text" id="total_price" class="form-control" readonly>
+        </div>
+
+        <!-- Payment Method Selection -->
+        <div class="form-group">
+            <label for="payment_method">Payment Method</label>
+            <select name="payment_method" id="payment_method" class="form-control" required>
+                <option value="">Select Payment Method</option>
+                <option value="cash">Cash</option>
+                <option value="card">Card</option>
+                <option value="transfer">Bank Transfer</option>
+            </select>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="form-submit">
+            <button type="submit" class="btn-add-product">Add Product</button>
+        </div>
+    </form>
+
+    <!-- Final Preview Section -->
+    <div id="preview-box" class="card mt-4 d-none">
+        <div class="card-header">🛒 Final Preview</div>
+        <div class="card-body">
+            <p><strong>Product:</strong> <span id="preview-name"></span></p>
+            <p><strong>Price:</strong> ₦<span id="preview-price"></span></p>
+            <p><strong>Quantity:</strong> 
+                <button type="button" class="btn btn-sm btn-secondary" id="minus-btn">−</button>
+                <span id="preview-quantity">1</span>
+                <button type="button" class="btn btn-sm btn-secondary" id="plus-btn">+</button>
+            </p>
+            <p><strong>Total:</strong> ₦<span id="preview-total"></span></p>
+            <form id="final-submit-form" method="POST" action="{{ route('purchaseitem.store') }}">
+                @csrf
+                <input type="hidden" name="product_id" id="final-product-id">
+                <input type="hidden" name="quantity" id="preview-total">
+                <button type="submit" class="btn btn-success">✅ Complete</button>
+            </form>
         </div>
     </div>
 </div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
 <script>
-    function downloadReceipt() {
-        const receipt = document.getElementById('receipt');
-        if (!receipt) {
-            alert("Receipt element not found.");
-            return;
-        }
-        html2pdf().from(receipt).save('receipt.pdf');
-    }
+let productsList = [];
 
-    const searchInput = document.getElementById('search-input');
-    const dateInput = document.getElementById('date-input');
-    const tableWrapper = document.getElementById('sales-table');
+const form = document.querySelector('.form');
+const previewBox = document.querySelector('#preview-box');
+const previewBody = document.querySelector('.card-body');
+const finalForm = document.querySelector('#final-submit-form');
 
-    function fetchSales() {
-        const search = searchInput.value;
-        const date = dateInput.value;
+// Handle 'Add Product'
+form.addEventListener('submit', function (e) {
+    e.preventDefault();
 
-        fetch(`/admin/filter-sales?search=${search}&date=${date}`, {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(res => res.text())
+    const name = document.querySelector('#product_name').value;
+    const price = parseFloat(document.querySelector('#price').value);
+    const productId = document.querySelector('#product').value;
+    const quantity = parseInt(document.querySelector('#quantity').value);
+    const paymentMethod = document.querySelector('#payment_method').value;
+
+    if (!productId || quantity < 1 || !paymentMethod) return;
+
+    // Fetch available stock for the product
+    fetch(`/api/product-stock/${productId}`)
+        .then(res => res.json())
         .then(data => {
-            tableWrapper.innerHTML = data;
+            const availableStock = data.stock;
+
+            if (quantity > availableStock) {
+                alert(`Not enough stock for ${name}. Available: ${availableStock}`);
+                return;
+            }
+
+            // Add product to cart
+            productsList.push({ name, price, productId, quantity, paymentMethod, stock: availableStock });
+
+            // Reset fields
+            document.querySelector('#product_name').value = '';
+            document.querySelector('#product').value = '';
+            document.querySelector('#price').value = '';
+            document.querySelector('#quantity').value = '';
+            document.querySelector('#total_price').value = '';
+            document.querySelector('#payment_method').value = '';
+
+            updateCartPreview();
+            updateFinalForm();
+
+            previewBox.classList.remove('d-none');
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Could not check stock 😵');
         });
+});
+
+function updateCartPreview() {
+    previewBody.innerHTML = '';
+    let totalSum = 0;
+
+    productsList.forEach((item, index) => {
+        const subtotal = item.price * item.quantity;
+        totalSum += subtotal;
+
+        const itemDiv = document.createElement('div');
+        itemDiv.classList.add('mb-2', 'border-bottom', 'pb-2');
+
+        itemDiv.innerHTML = `
+            <p><strong>Product:</strong> ${item.name}</p>
+            <p><strong>Price:</strong> ₦${item.price.toFixed(2)}</p>
+            <p><strong>Quantity:</strong> 
+                <button type="button" class="btn btn-sm btn-secondary minus-btn" data-index="${index}">−</button>
+                <span id="preview-quantity-${index}">${item.quantity}</span>
+                <button type="button" class="btn btn-sm btn-secondary plus-btn" data-index="${index}">+</button>
+            </p>
+            <p><strong>Total:</strong> ₦<span id="preview-total-${index}">${subtotal.toFixed(2)}</span></p>
+            <p><strong>Payment:</strong>
+                <select class="form-control form-control-sm payment-select" data-index="${index}">
+                    <option value="cash" ${item.paymentMethod === 'cash' ? 'selected' : ''}>Cash</option>
+                    <option value="card" ${item.paymentMethod === 'card' ? 'selected' : ''}>Card</option>
+                    <option value="transfer" ${item.paymentMethod === 'transfer' ? 'selected' : ''}>Transfer</option>
+                </select>
+            </p>
+            <button type="button" class="btn btn-sm btn-danger remove-btn" data-index="${index}">❌ Remove</button>
+        `;
+
+        previewBody.appendChild(itemDiv);
+    });
+
+    const totalDiv = document.createElement('div');
+    totalDiv.id = 'cart-total-div';
+    totalDiv.innerHTML = `<p><strong>Total: ₦<span id="cart-total">${totalSum.toFixed(2)}</span></strong></p>`;
+    previewBody.appendChild(totalDiv);
+
+    previewBody.appendChild(finalForm);
+
+    attachQtyListeners();
+    attachRemoveListeners();
+    attachPaymentListeners();
+}
+
+function attachQtyListeners() {
+    document.querySelectorAll('.plus-btn').forEach(btn => {
+        btn.onclick = function () {
+            const index = parseInt(this.dataset.index);
+            productsList[index].quantity++;
+            refreshQty(index);
+        };
+    });
+
+    document.querySelectorAll('.minus-btn').forEach(btn => {
+        btn.onclick = function () {
+            const index = parseInt(this.dataset.index);
+            if (productsList[index].quantity > 1) {
+                productsList[index].quantity--;
+                refreshQty(index);
+            }
+        };
+    });
+}
+
+function attachRemoveListeners() {
+    document.querySelectorAll('.remove-btn').forEach(btn => {
+        btn.onclick = function () {
+            const index = parseInt(this.dataset.index);
+            productsList.splice(index, 1); // remove product
+            updateCartPreview();
+            updateFinalForm();
+        };
+    });
+}
+
+function attachPaymentListeners() {
+    document.querySelectorAll('.payment-select').forEach(select => {
+        select.onchange = function () {
+            const index = parseInt(this.dataset.index);
+            productsList[index].paymentMethod = this.value;
+            updateFinalForm();
+        };
+    });
+}
+
+function refreshQty(index) {
+    const item = productsList[index];
+    const newTotal = item.price * item.quantity;
+
+    document.getElementById(`preview-quantity-${index}`).textContent = item.quantity;
+    document.getElementById(`preview-total-${index}`).textContent = newTotal.toFixed(2);
+
+    updateCartTotal();
+    updateFinalForm();
+}
+
+function updateCartTotal() {
+    let totalSum = productsList.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+    const totalSpan = document.querySelector('#cart-total');
+    if (totalSpan) totalSpan.textContent = totalSum.toFixed(2);
+}
+
+function updateFinalForm() {
+    finalForm.innerHTML = `@csrf`;
+
+    productsList.forEach((item, index) => {
+        finalForm.innerHTML += `
+            <input type="hidden" name="products[${index}][product_id]" value="${item.productId}">
+            <input type="hidden" name="products[${index}][quantity]" value="${item.quantity}">
+            <input type="hidden" name="products[${index}][payment_method]" value="${item.paymentMethod}">
+        `;
+    });
+
+    if (productsList.length) {
+        finalForm.innerHTML += `
+            <button type="submit" class="btn btn-success mt-2">✅ Complete</button>
+        `;
+    }
+}
+
+finalForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    if (productsList.length === 0) {
+        alert('Bruh, you need to add at least one product 😑');
+        return;
     }
 
-    searchInput.addEventListener('input', fetchSales);
-    dateInput.addEventListener('change', fetchSales);
-    window.addEventListener('DOMContentLoaded', fetchSales);
-</script>
+    // Build payload for backend
+    const payload = {
+        products: productsList.map(item => ({
+            product_id: item.productId,
+            quantity: item.quantity
+        })),
+        payment_method: productsList[0].paymentMethod // 👈 using first item’s method (or adjust if per-item)
+    };
 
+    fetch(finalForm.action, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json', // force JSON
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(res => {
+        if (!res.ok) {
+            return res.json().then(err => Promise.reject(err));
+        }
+        return res.json();
+    })
+    .then(data => {
+        if (data.success) {
+            window.open(`/purchaseitem/receipt/${data.receipt_id}`, '_blank');
+            productsList = [];
+            updateCartPreview();
+            alert('Sale completed successfully! 💸');
+        } else {
+            alert('❌ ' + (data.message || 'Failed to complete sale'));
+        }
+    })
+    .catch(err => {
+        console.error('Server/validation error:', err);
+        alert('⚠️ ' + (err.message || 'Network/server error'));
+    });
+});
+
+</script>
 @endsection

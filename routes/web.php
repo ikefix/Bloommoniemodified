@@ -190,3 +190,7 @@ Route::get('/products-by-shop/{shopId}', [StockTransferController::class, 'getPr
 // Route::get('/products-by-shop/{shopId}', [App\Http\Controllers\ProductController::class, 'getProductsByShop']);
 
 Route::delete('/products/{id}', [ProductController::class, 'destroy'])->name('products.destroy');
+
+
+Route::get('/receipt/search', [PurchaseItemController::class, 'searchReceipt'])->name('receipt.search');
+Route::get('/api/product-stock/{id}', [ProductController::class, 'getStock']);

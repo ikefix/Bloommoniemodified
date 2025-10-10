@@ -10,6 +10,8 @@ use App\Models\Shop;
 use App\Models\Notification;
 use App\Notifications\LowStockAlert;
 use Illuminate\Support\Facades\Auth;
+use App\Models\PurchaseItem; // make sure this is at the top
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
@@ -286,37 +288,43 @@ public function store(Request $request)
     // Sale processing method
 public function sellProduct(Request $request, $productId)
 {
-    // Validate the request
+    // ✅ Validate input
     $request->validate([
         'quantity' => 'required|integer|min:1',
+        'payment_method' => 'required|string', // e.g., cash, transfer, pos
     ]);
 
-    // Find the product
     $product = Product::findOrFail($productId);
     $quantitySold = $request->input('quantity');
 
-    // Check if there's enough stock
+    // ✅ Stock check
     if ($product->stock_quantity < $quantitySold) {
         return redirect()->back()->with('error', 'Not enough stock available.');
     }
 
-    // Reduce stock quantity after sale
+    // ✅ Reduce stock
     $product->stock_quantity -= $quantitySold;
     $product->save();
 
-    // Call the function to update stock and check for low stock
+    // ✅ Unique transaction ID
+    $transactionId = 'TXN-' . now()->format('YmdHis') . '-' . rand(1000, 9999);
+
+    // ✅ Save in purchase_items
+    $purchase = PurchaseItem::create([
+        'product_id'     => $product->id,
+        'category_id'    => $product->category_id,
+        'quantity'       => $quantitySold,
+        'total_price'    => $product->price * $quantitySold,
+        'payment_method' => $request->payment_method,
+        'transaction_id' => $transactionId,
+        'shop_id'        => auth()->user()->shop_id,
+    ]);
+
+    // ✅ Check stock notification
     $this->updateStockAndNotify($product, $quantitySold);
 
-    // Create the SaleItem (optional, based on your sale tracking)
-    // SaleItem::create([
-    //     'product_id' => $product->id,
-    //     'quantity' => $quantitySold,
-    //     'total_price' => $product->price * $quantitySold,
-    //     'user_id' => Auth::id(),
-    // ]);
-
-    // Return a success message
-    return redirect()->back()->with('success', 'Sale processed successfully!');
+    // ✅ Redirect to receipt
+    return redirect()->route('receipt.show', $purchase->id);
 }
 
 public function liveSearch(Request $request)
@@ -329,4 +337,17 @@ public function liveSearch(Request $request)
 
     return view('products.partials.table', compact('products'))->render(); // return partial
 }
+public function getStock($id)
+{
+    $product = Product::find($id);
+
+    if (!$product) {
+        return response()->json(['error' => 'Product not found'], 404);
+    }
+
+    return response()->json([
+        'stock' => $product->stock_quantity
+    ]);
+}
+
 }

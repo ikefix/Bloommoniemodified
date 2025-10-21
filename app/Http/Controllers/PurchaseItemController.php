@@ -57,14 +57,15 @@ public function searchReceipt(Request $request)
 }
 
     // Store the purchase item and update stock
-   public function store(Request $request)
+ public function store(Request $request)
 {
     try {
-        // validate safely
         $validated = $request->validate([
             'products' => 'required|array|min:1',
             'products.*.product_id' => 'required|exists:products,id',
             'products.*.quantity' => 'required|integer|min:1',
+            'products.*.discount_type' => 'nullable|in:none,percentage,flat',
+            'products.*.discount_value' => 'nullable|numeric|min:0',
             'payment_method' => 'required|in:cash,card,transfer',
         ]);
 
@@ -75,7 +76,6 @@ public function searchReceipt(Request $request)
             $product = Product::findOrFail($item['product_id']);
             $quantityRequested = $item['quantity'];
 
-            // Stock check → JSON response
             if ($product->stock_quantity < $quantityRequested) {
                 return response()->json([
                     'success' => false,
@@ -83,21 +83,37 @@ public function searchReceipt(Request $request)
                 ], 400);
             }
 
-            // Save purchaseaa
+            // 🧮 Calculate discount properly
+            $discountType = $item['discount_type'] ?? 'none';
+            $discountValue = $item['discount_value'] ?? 0;
+            $priceBeforeDiscount = $product->price * $quantityRequested;
+            $discountAmount = 0;
+
+            if ($discountType === 'percentage') {
+                $discountAmount = ($discountValue / 100) * $priceBeforeDiscount;
+            } elseif ($discountType === 'flat') {
+                $discountAmount = $discountValue;
+            }
+
+            $totalAfterDiscount = max($priceBeforeDiscount - $discountAmount, 0);
+
             $lastPurchase = PurchaseItem::create([
                 'product_id'     => $product->id,
                 'category_id'    => $product->category_id,
                 'quantity'       => $quantityRequested,
-                'total_price'    => $product->price * $quantityRequested,
+                'total_price'    => $totalAfterDiscount,
+                'discount'       => $discountAmount,
+                'discount_type'  => $discountType,
+                'discount_value' => $discountValue,
                 'payment_method' => $validated['payment_method'],
                 'transaction_id' => $transactionId,
                 'shop_id'        => $product->shop_id,
             ]);
 
-            // Update stock
+            // 🔄 Update stock
             $product->decrement('stock_quantity', $quantityRequested);
 
-            // Low stock notification
+            // ⚠️ Low stock alert
             if ($product->stock_quantity <= $product->stock_limit) {
                 $admins = User::whereIn('role', ['admin', 'manager'])->get();
                 Notification::send($admins, new LowStockAlert($product));
@@ -111,20 +127,19 @@ public function searchReceipt(Request $request)
         ]);
 
     } catch (\Illuminate\Validation\ValidationException $e) {
-        // Validation error → JSON
         return response()->json([
             'success' => false,
             'message' => $e->errors(),
         ], 422);
 
     } catch (\Exception $e) {
-        // Unexpected error → JSON
         return response()->json([
             'success' => false,
             'message' => 'Server error: ' . $e->getMessage(),
         ], 500);
     }
 }
+
 
 
 
@@ -154,22 +169,26 @@ public function searchReceipt(Request $request)
 
         // View all sales FOR CASHIER
         public function cashiersales(Request $request)
-        {
-            $search = $request->input('search');
-            $date = $request->input('date', now()->toDateString()); // 👈 Default to today
-    
-            $sales = PurchaseItem::with(['product.category'])
-                ->when($search, function ($query, $search) {
-                    $query->whereHas('product', function ($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%");
-                    });
-                })
-                ->whereDate('created_at', $date) // 👈 Only today's records
-                ->orderBy('created_at', 'desc')
-                ->get();
-    
-            return view('cashier.home-sales', compact('sales', 'search', 'date'));
-        }
+{
+    $search = $request->input('search');
+    $date = $request->input('date', now()->toDateString());
+
+    $user = auth()->user(); // 👈 get the logged-in cashier
+
+    $sales = PurchaseItem::with(['product.category', 'shop'])
+        ->when($search, function ($query, $search) {
+            $query->whereHas('product', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            });
+        })
+        ->where('shop_id', $user->shop_id) // ✅ only show sales from cashier’s assigned shop
+        ->whereDate('created_at', $date) // ✅ filter by today’s date
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    return view('cashier.home-sales', compact('sales', 'search', 'date'));
+}
+
 
         // View all sales FOR MANAGER
         public function managersales(Request $request)

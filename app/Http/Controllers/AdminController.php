@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Notifications\Notifiable;
 use App\Models\Shop;
 use App\Models\User;
+use App\Models\Expense;
 use App\Models\PurchaseItem;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -211,30 +212,179 @@ public function filterSales(Request $request)
 }
 
 
+// public function dashboard()
+// {   
+//     // Start of the week (Monday)
+//     $startOfWeek = Carbon::now()->startOfWeek(); // default is Monday
+//     $endOfWeek = Carbon::now()->endOfWeek();     // Sunday
+//     $today = Carbon::today();
+
+//     // 💸 Total sales today
+//     $totalSalesThisWeek = PurchaseItem::whereBetween('created_at', [$startOfWeek, $endOfWeek])
+//     ->sum('total_price');
+
+//     // 💰 Revenue today (same for now)
+//     $totalRevenueToday =  PurchaseItem::whereDate('created_at', $today)
+//     ->sum('total_price');
+
+//     // 📦 Count of products still in stock
+//     $productsInStock = Product::where('stock_quantity', '>', 0)->count();
+
+//     // 🧾 Top selling products *for today only*
+//     $topSelling = PurchaseItem::whereDate('created_at', $today)
+//         ->select('product_id', DB::raw('SUM(quantity) as total_sold'))
+//         ->groupBy('product_id')
+//         ->orderByDesc('total_sold')
+//         ->with('product') // eager load product
+//         ->take(5)
+//         ->get();
+
+//     // 🥧 Pie chart data
+//     $topSellingProductNames = [];
+//     $topSellingProductSales = [];
+
+//     foreach ($topSelling as $item) {
+//         $topSellingProductNames[] = $item->product->name ?? 'Unknown';
+//         $topSellingProductSales[] = $item->total_sold;
+//     }
+
+//     // 📈 Sales trend over the last 7 days
+//     $salesTrend = PurchaseItem::select(
+//             DB::raw('DATE(created_at) as date'),
+//             DB::raw('SUM(total_price) as total')
+//         )
+//         ->whereDate('created_at', '>=', now()->subDays(6))
+//         ->groupBy('date')
+//         ->orderBy('date')
+//         ->get();
+
+//     $salesTrendLabels = [];
+//     $salesTrendData = [];
+
+//     $dates = collect(range(0, 6))->map(function ($daysAgo) {
+//         return Carbon::today()->subDays($daysAgo)->format('Y-m-d');
+//     })->reverse();
+
+//     foreach ($dates as $date) {
+//         $salesTrendLabels[] = Carbon::parse($date)->format('M d');
+//         $daySale = $salesTrend->firstWhere('date', $date);
+//         $salesTrendData[] = $daySale ? $daySale->total : 0;
+//     }
+
+//     return view('admin.dashboard', compact(
+//         'totalSalesThisWeek',
+//         'totalRevenueToday',
+//         'productsInStock',
+//         'topSelling',
+//         'topSellingProductNames',
+//         'topSellingProductSales',
+//         'salesTrendLabels',
+//         'salesTrendData'
+//     ));
+// }
+
+
+// public function dashboard()
+// {   
+//     $startOfWeek = Carbon::now()->startOfWeek();
+//     $endOfWeek = Carbon::now()->endOfWeek();
+//     $today = Carbon::today();
+
+//     // 💸 Total sales this week (after discount)
+//     $totalSalesThisWeek = PurchaseItem::whereBetween('created_at', [$startOfWeek, $endOfWeek])
+//         ->sum(DB::raw('total_price - COALESCE(discount_value, 0)'));
+
+//     // 💰 Revenue today (after discount)
+//     $totalRevenueToday = PurchaseItem::whereDate('created_at', $today)
+//         ->sum(DB::raw('total_price - COALESCE(discount_value, 0)'));
+
+//     // 📦 Products still in stock
+//     $productsInStock = Product::where('stock_quantity', '>', 0)->count();
+
+//     // 🧾 Top selling products today
+//     $topSelling = PurchaseItem::whereDate('created_at', $today)
+//         ->select('product_id', DB::raw('SUM(quantity) as total_sold'))
+//         ->groupBy('product_id')
+//         ->orderByDesc('total_sold')
+//         ->with('product')
+//         ->take(5)
+//         ->get();
+
+//     // 🥧 Pie chart data
+//     $topSellingProductNames = [];
+//     $topSellingProductSales = [];
+
+//     foreach ($topSelling as $item) {
+//         $topSellingProductNames[] = $item->product->name ?? 'Unknown';
+//         $topSellingProductSales[] = $item->total_sold;
+//     }
+
+//     // 📈 Sales trend (last 7 days, after discount)
+//     $salesTrend = PurchaseItem::select(
+//             DB::raw('DATE(created_at) as date'),
+//             DB::raw('SUM(total_price - COALESCE(discount_value, 0)) as total')
+//         )
+//         ->whereDate('created_at', '>=', now()->subDays(6))
+//         ->groupBy('date')
+//         ->orderBy('date')
+//         ->get();
+
+//     $salesTrendLabels = [];
+//     $salesTrendData = [];
+
+//     $dates = collect(range(0, 6))->map(function ($daysAgo) {
+//         return Carbon::today()->subDays($daysAgo)->format('Y-m-d');
+//     })->reverse();
+
+//     foreach ($dates as $date) {
+//         $salesTrendLabels[] = Carbon::parse($date)->format('M d');
+//         $daySale = $salesTrend->firstWhere('date', $date);
+//         $salesTrendData[] = $daySale ? $daySale->total : 0;
+//     }
+
+//     return view('admin.dashboard', compact(
+//         'totalSalesThisWeek',
+//         'totalRevenueToday',
+//         'productsInStock',
+//         'topSelling',
+//         'topSellingProductNames',
+//         'topSellingProductSales',
+//         'salesTrendLabels',
+//         'salesTrendData'
+//     ));
+// }
+
+
 public function dashboard()
 {   
-    // Start of the week (Monday)
-    $startOfWeek = Carbon::now()->startOfWeek(); // default is Monday
-    $endOfWeek = Carbon::now()->endOfWeek();     // Sunday
+    $startOfWeek = Carbon::now()->startOfWeek();
+    $endOfWeek = Carbon::now()->endOfWeek();
     $today = Carbon::today();
+    $startOfMonth = Carbon::now()->startOfMonth();
+    $endOfMonth = Carbon::now()->endOfMonth();
 
-    // 💸 Total sales today
+    // 💸 Total sales for the week
     $totalSalesThisWeek = PurchaseItem::whereBetween('created_at', [$startOfWeek, $endOfWeek])
-    ->sum('total_price');
+        ->sum(DB::raw('total_price - COALESCE(discount_value, 0)'));
 
-    // 💰 Revenue today (same for now)
-    $totalRevenueToday =  PurchaseItem::whereDate('created_at', $today)
-    ->sum('total_price');
+    // 💰 Revenue today
+    $totalRevenueToday = PurchaseItem::whereDate('created_at', $today)
+        ->sum('total_price');
 
-    // 📦 Count of products still in stock
+    // 🏷️ Discount totals
+    $totalDiscountToday = PurchaseItem::whereDate('created_at', $today)->sum('discount_value');
+    $totalDiscountThisWeek = PurchaseItem::whereBetween('created_at', [$startOfWeek, $endOfWeek])->sum('discount_value');
+    $totalDiscountThisMonth = PurchaseItem::whereBetween('created_at', [$startOfMonth, $endOfMonth])->sum('discount_value');
+
+    // 📦 Products in stock
     $productsInStock = Product::where('stock_quantity', '>', 0)->count();
-
-    // 🧾 Top selling products *for today only*
+    
+    // 🧾 Top selling products today
     $topSelling = PurchaseItem::whereDate('created_at', $today)
         ->select('product_id', DB::raw('SUM(quantity) as total_sold'))
         ->groupBy('product_id')
         ->orderByDesc('total_sold')
-        ->with('product') // eager load product
+        ->with('product')
         ->take(5)
         ->get();
 
@@ -247,7 +397,7 @@ public function dashboard()
         $topSellingProductSales[] = $item->total_sold;
     }
 
-    // 📈 Sales trend over the last 7 days
+    // 📈 Sales trend
     $salesTrend = PurchaseItem::select(
             DB::raw('DATE(created_at) as date'),
             DB::raw('SUM(total_price) as total')
@@ -270,6 +420,49 @@ public function dashboard()
         $salesTrendData[] = $daySale ? $daySale->total : 0;
     }
 
+    // 💹 PROFIT BEFORE EXPENSES
+    $dailyProfit = PurchaseItem::whereDate('created_at', $today)
+        ->with('product')
+        ->get()
+        ->sum(function ($item) {
+            $costPrice = $item->product->cost_price ?? 0;
+            $sellingPrice = $item->total_price - ($item->discount_value ?? 0);
+            return ($sellingPrice - ($costPrice * $item->quantity));
+        });
+
+    $weeklyProfit = PurchaseItem::whereBetween('created_at', [$startOfWeek, $endOfWeek])
+        ->with('product')
+        ->get()
+        ->sum(function ($item) {
+            $costPrice = $item->product->cost_price ?? 0;
+            $sellingPrice = $item->total_price - ($item->discount_value ?? 0);
+            return ($sellingPrice - ($costPrice * $item->quantity));
+        });
+
+    $monthlyProfit = PurchaseItem::whereBetween('created_at', [$startOfMonth, $endOfMonth])
+        ->with('product')
+        ->get()
+        ->sum(function ($item) {
+            $costPrice = $item->product->cost_price ?? 0;
+            $sellingPrice = $item->total_price - ($item->discount_value ?? 0);
+            return ($sellingPrice - ($costPrice * $item->quantity));
+        });
+
+    // 🧾 Expenses
+    $dailyExpenses = Expense::whereDate('date', $today)->sum('amount');
+    $weeklyExpenses = Expense::whereBetween('date', [$startOfWeek, $endOfWeek])->sum('amount');
+    $monthlyExpenses = Expense::whereBetween('date', [$startOfMonth, $endOfMonth])->sum('amount');
+
+    // 💵 NET PROFIT (After Expenses)
+    $netProfitToday = $dailyProfit - $dailyExpenses;
+    $netProfitWeek = $weeklyProfit - $weeklyExpenses;
+    $netProfitMonth = $monthlyProfit - $monthlyExpenses;
+
+    // 📉 Loss (if net profit < 0)
+    $dailyLoss = $netProfitToday < 0 ? abs($netProfitToday) : 0;
+    $weeklyLoss = $netProfitWeek < 0 ? abs($netProfitWeek) : 0;
+    $monthlyLoss = $netProfitMonth < 0 ? abs($netProfitMonth) : 0;
+
     return view('admin.dashboard', compact(
         'totalSalesThisWeek',
         'totalRevenueToday',
@@ -278,9 +471,30 @@ public function dashboard()
         'topSellingProductNames',
         'topSellingProductSales',
         'salesTrendLabels',
-        'salesTrendData'
+        'salesTrendData',
+        'totalDiscountToday',
+        'totalDiscountThisWeek',
+        'totalDiscountThisMonth',
+        'dailyProfit',
+        'weeklyProfit',
+        'monthlyProfit',
+        'dailyExpenses',
+        'weeklyExpenses',
+        'monthlyExpenses',
+        'netProfitToday',
+        'netProfitWeek',
+        'netProfitMonth',
+        'dailyLoss',
+        'weeklyLoss',
+        'monthlyLoss'
     ));
 }
+
+
+
+
+
+
 
 
 

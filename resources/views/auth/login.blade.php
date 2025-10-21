@@ -199,7 +199,7 @@
     }
 </style>
 
-<div class="login-container">
+<div class="login-container hero">
     <div class="auth-card">
         <h2>{{ __('Login') }}</h2>
 

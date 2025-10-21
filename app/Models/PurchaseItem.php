@@ -12,13 +12,19 @@ class PurchaseItem extends Model
     protected $fillable = [
         'product_id',
         'category_id',
+        'shop_id',
         'quantity',
         'total_price',
         'payment_method',
-        'transaction_id', // 🔥 Add this to make mass-assignment work
-        'shop_id', // 💥 Add this
+        'transaction_id',
+        'discount_type',      // 🆕 Added
+        'discount_value',     // 🆕 Added
+        'discount',           // 🆕 Added
     ];
 
+    /**
+     * Relationships
+     */
     public function product()
     {
         return $this->belongsTo(Product::class);
@@ -34,4 +40,11 @@ class PurchaseItem extends Model
         return $this->belongsTo(Shop::class);
     }
 
+    /**
+     * Accessor: Calculate final price after discount
+     */
+    public function getFinalPriceAttribute()
+    {
+        return $this->total_price - $this->discount;
+    }
 }

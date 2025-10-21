@@ -11,9 +11,13 @@ use App\Http\Controllers\ShopController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProductPermissionController;
 use App\Http\Controllers\StockTransferController;
-
+use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\CategoryController;
+use Milon\Barcode\DNS1D;
+use App\Models\Product;
 
+use Illuminate\Http\Request;
+use App\Http\Controllers\BarcodeController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -24,6 +28,34 @@ use App\Http\Controllers\CategoryController;
 | contains the "web" middleware group. Now create something great!
 |
 */
+
+
+
+// Route::get('/barcode/{code}', function ($code) {
+//     $barcode = new DNS1D();
+//     // Generate a PNG barcode as base64
+//     $png = $barcode->getBarcodePNG($code, 'C128');
+//     // Return it as an inline image response (no file saved)
+//     return response(base64_decode($png))
+//         ->header('Content-Type', 'image/png');
+// });
+
+Route::get('/get-product/{barcode}', function ($barcode) {
+    $product = Product::where('barcode_number', $barcode)->first();
+    return response()->json([
+        'success' => $product ? true : false,
+        'name' => $product->name ?? null
+    ]);
+});
+
+
+Route::get('/barcode-manager', function () {
+    return view('barcode-manager');
+})->name('barcode.manager');
+
+Route::get('/get-product-name/{barcode}', [App\Http\Controllers\BarcodeController::class, 'getProductName']);
+
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -141,7 +173,7 @@ Route::get('/purchaseitem/receipt/{id}', [PurchaseItemController::class, 'showRe
 
 
 Route::get('/home', [PurchaseItemController::class, 'index'])->name('home');
-Route::get('/cashiersales', [PurchaseItemController::class, 'cashiersales'])->name('cashiersales');
+Route::get('/cashiersales', [PurchaseItemController::class, 'cashiersales'])->name('cashier.home-sales');
 
 
 
@@ -194,3 +226,19 @@ Route::delete('/products/{id}', [ProductController::class, 'destroy'])->name('pr
 
 Route::get('/receipt/search', [PurchaseItemController::class, 'searchReceipt'])->name('receipt.search');
 Route::get('/api/product-stock/{id}', [ProductController::class, 'getStock']);
+
+
+
+
+// ROUTES FOR EXPENSES
+Route::get('/Adminexpenses', [ExpenseController::class, 'index'])->name('expenses.index');
+Route::get('/Adminexpenses/create', [ExpenseController::class, 'create'])->name('expenses.create');
+Route::post('/Adminexpenses', [ExpenseController::class, 'store'])->name('expenses.store');
+Route::delete('/Adminexpenses/{id}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
+
+
+
+Route::get('/Cashierexpense', [ExpenseController::class, 'indexcash'])->name('cashierexpense.index');
+Route::get('/Cashierexpenses/create', [ExpenseController::class, 'createcash'])->name('cashierexpense.create');
+Route::post('/Cashierexpenses', [ExpenseController::class, 'storecash'])->name('cashierexpense.store');
+Route::delete('/Cashierexpenses/{id}', [ExpenseController::class, 'destroycash'])->name('cashierexpense.destroy');

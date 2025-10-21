@@ -13,8 +13,7 @@
     <link rel="dns-prefetch" href="//fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
 
-    <!-- Scripts -->
-        <link rel="stylesheet" href="app.css">
+    @vite(['resources/sass/app.scss', 'resources/js/app.js', 'resources/css/app.css'])
 </head>
 <body>
     <div id="app">
@@ -140,7 +139,7 @@
 
 {{-- FOR PRODUCT UPDATE PRODUCT --}}
 <!-- Bootstrap JS (make sure you include this for alert close functionality) -->
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+{{-- <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 <script>
     document.getElementById('category_id').addEventListener('change', function () {
         const categoryId = this.value;
@@ -156,7 +155,7 @@
                 });
             });
     });
-</script>
+</script> --}}
 
 
 

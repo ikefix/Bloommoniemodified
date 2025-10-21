@@ -8,6 +8,7 @@
             <th>Remaining Stock</th>
             <th>Actions</th>
             <th>Shop</th>
+            <th>Barcode</th>
         </tr>
     </thead>
     <tbody>
@@ -39,6 +40,7 @@
                     </form>
                 </td>
                 <td>{{ $product->shop->name ?? 'Not assigned' }}</td>
+                <td>{{ $product->barcode ?? 'Not assigned' }}</td>
             </tr>
         @empty
             <tr><td colspan="6" class="text-center">No products found.</td></tr>

@@ -1,11 +1,10 @@
 @extends('layouts.app')
 
-@vite(['resources/sass/app.scss', 'resources/js/app.js', 'resources/css/app.css'])
-
 @section('content')
 <div class="container">
+        
     <div class="d-flex justify-content-between align-items-center mb-3 no-print">
-        <h2>Cashier Sales</h2>
+    <h3>💰 Expenses List</h3>
         <div>
             <button id="downloadPDF" class="btn btn-success btn-sm">📥 Download PDF</button>
             <button onclick="window.print()" class="btn btn-primary btn-sm">🖨️ Print</button>
@@ -21,52 +20,48 @@
         </p>
     </div>
 
-    <!-- ✅ Sales Table -->
-    <table class="table table-bordered" id="salesTable">
-        <thead class="table-dark">
+    <a href="{{ route('cashierexpense.create') }}" class="btn btn-primary mb-3 no-print">+ Add Expense</a>
+
+    @if(session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
+    @endif
+
+    <table class="table table-bordered">
+        <thead>
             <tr>
-                <th>Product Name</th>
-                <th>Category</th>
-                <th>Quantity</th>
-                <th>Total Price</th>
-                <th>Payment Method</th>
+                <th>#</th>
+                <th>Title</th>
+                <th>Amount</th>
                 <th>Date</th>
-                <th>Shop</th>
-                <th>Transaction ID</th>
-                <th>Discount Value</th>
+                <th>Added By</th>
+                <th>Description</th>
+                <th>Action</th>
             </tr>
         </thead>
         <tbody>
-            @forelse($sales as $sale)
+            @forelse($expenses as $expense)
                 <tr>
-                    <td>{{ $sale->product->name ?? 'Product Deleted' }}</td>
-                    <td>{{ $sale->product->category->name ?? 'Category Missing' }}</td>
-                    <td>{{ $sale->quantity }}</td>
+                    <td>{{ $loop->iteration }}</td>
+                    <td>{{ $expense->title }}</td>
+                    <td>₦{{ number_format($expense->amount, 2) }}</td>
+                    <td>{{ \Carbon\Carbon::parse($expense->date)->format('M d, Y') }}</td>
+                    <td>{{ $expense->added_by }}</td>
+                    <td>{{ $expense->description ?? '—' }}</td>
                     <td>
-                    @if(!empty($sale->discount_value) && $sale->discount_value > 0)
-                        <span style="text-decoration: line-through; color: red;">
-                            ₦{{ number_format($sale->total_price, 2) }}
-                        </span><br>
-                        <span style="color: #28a745; font-weight: bold;">
-                            ₦{{ number_format($sale->total_price - $sale->discount, 2) }}
-                        </span>
-                    @else
-                        <span style="color: #000;">
-                            ₦{{ number_format($sale->total_price, 2) }}
-                        </span>
-                    @endif
-                </td>
-                    <td>{{ ucfirst($sale->payment_method) }}</td>
-                    <td>{{ $sale->created_at->format('Y-m-d H:i:s') }}</td>
-                    <td>{{ $sale->shop->name ?? 'Unknown Shop' }}</td>
-                    <td>{{ $sale->transaction_id ?? 'Unknown Transaction' }}</td>
-                    <td>{{ $sale->discount_value ?? 'Unknown Transaction' }}</td>
+                        <form action="{{ route('cashierexpense.destroy', $expense->id) }}" method="POST" onsubmit="return confirm('Delete this expense?')">
+                            @csrf
+                            @method('DELETE')
+                            <button class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </td>
                 </tr>
             @empty
-                <tr><td colspan="7" class="text-center">No sales found for today</td></tr>
+                <tr><td colspan="7" class="text-center">No expenses found.</td></tr>
             @endforelse
         </tbody>
     </table>
+
+    {{ $expenses->links() }}
 </div>
 
 <!-- ✅ PDF Libraries -->

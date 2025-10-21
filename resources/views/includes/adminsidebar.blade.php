@@ -21,9 +21,21 @@
                 <span class="sidebar-icon">💰</span>
                 <span class="sidebar-text">Sales</span>
             </a>
+            <a href="{{ route('expenses.create') }}" class="sidebar-link">
+                <span class="sidebar-icon">🏬</span>
+                <span class="sidebar-text">Create Expense</span>
+            </a>
+            <a href="{{ route('expenses.index') }}" class="sidebar-link">
+                <span class="sidebar-icon">💰</span>
+                <span class="sidebar-text">View Expenses</span>
+            </a>
             <a href="{{route('shops.create')}}" class="sidebar-link">
                 <span class="sidebar-icon">🏬</span>
                 <span class="sidebar-text">Shops</span>
+            </a>
+            <a href="{{ route('barcode.manager') }}" class="sidebar-link">
+                <span class="sidebar-icon">🛡️</span>
+                <span class="sidebar-text">Barcode Manager</span>
             </a>
             <a href="{{route('stock-transfers.create')}}" class="sidebar-link">
                 <span class="sidebar-icon">🏢</span>

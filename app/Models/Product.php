@@ -14,9 +14,10 @@ class Product extends Model
 
     protected $fillable = [
         'category_id',
-        'shop_id', // ⬅️ Added this
+        'shop_id',
         'name',
         'description',
+        'barcode', // ✅ Added this
         'price',
         'cost_price',
         'stock_quantity',

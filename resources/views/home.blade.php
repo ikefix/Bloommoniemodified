@@ -14,7 +14,7 @@
     <div class="alert alert-success">{{ session('success') }}</div>
 @endif
 
-<form action="{{ route('receipt.search') }}" method="GET" class="mb-4">
+<form action="{{ route('receipt.search') }}" method="GET" class="mb-4" target="_blank">
     <div class="input-group">
         <input type="text" name="transaction_id" class="form-control" placeholder="Enter Receipt Tracking ID" required>
         <button type="submit" class="btn btn-primary">Search Receipt</button>
@@ -62,6 +62,21 @@
                 <option value="transfer">Bank Transfer</option>
             </select>
         </div>
+    <!-- Discount Section -->
+    <div class="form-group">
+        <label for="discount_type">Discount Type</label>
+        <select id="discount_type" name="discount_type" class="form-control">
+            <option value="none">No Discount</option>
+            <option value="percentage">Percentage (%)</option>
+            <option value="flat">Flat (₦)</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="discount_value">Discount Value</label>
+        <input type="number" id="discount_value" name="discount_value" class="form-control" placeholder="Enter discount value" min="0" value="0">
+    </div>
+
 
         <!-- Submit Button -->
         <div class="form-submit">
@@ -176,9 +191,26 @@ function updateCartPreview() {
         previewBody.appendChild(itemDiv);
     });
 
+    // Calculate discount
+    const discountType = document.querySelector('#discount_type')?.value || 'none';
+    const discountValue = parseFloat(document.querySelector('#discount_value')?.value) || 0;
+
+    let discountedTotal = totalSum;
+    if (discountType === 'percentage') {
+        discountedTotal -= (totalSum * discountValue / 100);
+    } else if (discountType === 'flat') {
+        discountedTotal -= discountValue;
+    }
+    if (discountedTotal < 0) discountedTotal = 0;
+
+    // Display total and discount summary
     const totalDiv = document.createElement('div');
     totalDiv.id = 'cart-total-div';
-    totalDiv.innerHTML = `<p><strong>Total: ₦<span id="cart-total">${totalSum.toFixed(2)}</span></strong></p>`;
+    totalDiv.innerHTML = `
+        <p><strong>Subtotal: ₦${totalSum.toFixed(2)}</strong></p>
+        ${discountType !== 'none' ? `<p><strong>Discount:</strong> ${discountType === 'percentage' ? discountValue + '%' : '₦' + discountValue}</p>` : ''}
+        <p><strong>Final Total: ₦<span id="cart-total">${discountedTotal.toFixed(2)}</span></strong></p>
+    `;
     previewBody.appendChild(totalDiv);
 
     previewBody.appendChild(finalForm);
@@ -272,20 +304,26 @@ finalForm.addEventListener('submit', function (e) {
         return;
     }
 
-    // Build payload for backend
+    // ✅ Get discount values from the form
+    const discountType = document.querySelector('#discount_type')?.value || 'none';
+    const discountValue = parseFloat(document.querySelector('#discount_value')?.value) || 0;
+
+    // ✅ Build payload for backend
     const payload = {
         products: productsList.map(item => ({
             product_id: item.productId,
-            quantity: item.quantity
+            quantity: item.quantity,
+            discount_type: discountType,
+            discount_value: discountValue,
         })),
-        payment_method: productsList[0].paymentMethod // 👈 using first item’s method (or adjust if per-item)
+        payment_method: productsList[0].paymentMethod // can adjust per item if needed
     };
 
     fetch(finalForm.action, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/json', // force JSON
+            'Accept': 'application/json',
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
         },
         body: JSON.stringify(payload)
@@ -311,6 +349,7 @@ finalForm.addEventListener('submit', function (e) {
         alert('⚠️ ' + (err.message || 'Network/server error'));
     });
 });
+
 
 </script>
 @endsection

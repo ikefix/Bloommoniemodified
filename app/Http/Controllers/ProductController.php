@@ -16,90 +16,54 @@ use Illuminate\Support\Str;
 class ProductController extends Controller
 {
     // Fetch all products (with category data)
-    public function index(Request $request)
-    {
-        $query = Product::with('category');
+    // public function index(Request $request)
+    // {
+    //     $query = Product::with('category');
     
-        // If user is typing in search box
-        if ($search = $request->input('search')) {
-            $query->where('name', 'like', "%{$search}%");
-        }
+    //     // If user is typing in search box
+    //     if ($search = $request->input('search')) {
+    //         $query->where('name', 'like', "%{$search}%");
+    //     }
     
-        // Pagination — show 10 products per page
-        $products = $query->paginate(10);
+    //     // Pagination — show 10 products per page
+    //     $products = $query->paginate(10);
     
-        // AJAX response: just send the table fragment
-        if ($request->ajax()) {
-            return view('products.partials.table', compact('products'))->render();
-        }
+    //     // AJAX response: just send the table fragment
+    //     if ($request->ajax()) {
+    //         return view('products.partials.table', compact('products'))->render();
+    //     }
     
-        // Normal view load
-        $categories = Category::all(); // if you still need it on the page
-        return view('products.index', compact('products', 'categories'));
-    }
-    
+    //     // Normal view load
+    //     $categories = Category::all(); // if you still need it on the page
+    //     return view('products.index', compact('products', 'categories'));
+    // }
 
-    // Store a new product (admin only)
-//     public function store(Request $request)
+//     public function index(Request $request)
 // {
-//     if (Auth::user()->role !== 'admin') {
-//         abort(403, 'Unauthorized action.');
+//     // Load products with related category and shop
+//     $query = Product::with(['category', 'shop']);
+
+//     // 🔍 Handle search input
+//     if ($search = $request->input('search')) {
+//         $query->where('name', 'like', "%{$search}%");
 //     }
 
-//     $request->validate([
-//         'category_id' => 'required|exists:categories,id',
-//         'name' => 'required|string|max:255',
-//         'price' => 'required|numeric|min:0',
-//         'cost_price' => 'required|numeric|min:0',
-//         'stock_quantity' => 'required|integer|min:0',
-//     ]);
+//     // 📄 Paginate results (10 per page)
+//     $products = $query->paginate(10);
 
-//     $product = Product::create($request->all());
-
-//     // Notify if stock is low
-//     $this->checkStockNotification($product);
-
-//     session()->flash('success', 'Product stocked successfully!');
-//     return redirect()->route('products.create');
-// }
-
-// public function store(Request $request)
-// {
-//     $user = Auth::user();
-
-//     // Authorization logic
-//     if ($user->role === 'manager') {
-//         $hasPermission = \App\Models\ProductPermission::where('manager_id', $user->id)->exists();
-
-//         if (!$hasPermission) {
-//             abort(403, 'You are not allowed to add products.');
-//         }
-//     } elseif ($user->role !== 'admin') {
-//         abort(403, 'Unauthorized action.');
+//     // ⚡ Handle AJAX requests (for live search or pagination)
+//     if ($request->ajax()) {
+//         return view('products.partials.table', compact('products'))->render();
 //     }
 
-//     // Validation
-//     $request->validate([
-//         'category_id' => 'required|exists:categories,id',
-//         'shop_id' => 'required|exists:shops,id', // 💥 Add this line
-//         'name' => 'required|string|max:255',
-//         'price' => 'required|numeric|min:0',
-//         'cost_price' => 'required|numeric|min:0',
-//         'stock_quantity' => 'required|integer|min:0',
-//     ]);
-
-//     // Product creation
-//     $product = Product::create($request->all());
-
-//     // Check and notify if stock is low
-//     $this->checkStockNotification($product);
-
-//     session()->flash('success', 'Product stocked successfully!');
-//     return redirect()->route('products.create');
+//     // 🌍 Load full page normally
+//     $categories = Category::all(); // still needed for dropdown filters, etc.
+//     return view('products.create', compact('products', 'categories'));
 // }
 
+    
 
-public function store(Request $request)
+    public function store(Request $request)
 {
     $user = Auth::user();
 
@@ -114,17 +78,18 @@ public function store(Request $request)
         abort(403, 'Unauthorized action.');
     }
 
-    // Validation
+    // ✅ Validation
     $request->validate([
         'category_id' => 'required|exists:categories,id',
         'shop_id' => 'required|exists:shops,id',
         'name' => 'required|string|max:255',
+        'barcode' => 'required|string|unique:products,barcode', // ✅ must exist & unique
         'price' => 'required|numeric|min:0',
         'cost_price' => 'required|numeric|min:0',
         'stock_quantity' => 'required|integer|min:0',
     ]);
 
-    // Check if product already exists in the same shop & category
+    // Check if product already exists in same shop & category
     $existingProduct = Product::where('name', $request->name)
         ->where('shop_id', $request->shop_id)
         ->where('category_id', $request->category_id)
@@ -135,8 +100,17 @@ public function store(Request $request)
         return redirect()->back()->withInput();
     }
 
-    // Safe creation
-    $data = $request->only(['category_id', 'shop_id', 'name', 'price', 'cost_price', 'stock_quantity']);
+    // ✅ Safe creation (now includes barcode)
+    $data = $request->only([
+        'category_id',
+        'shop_id',
+        'name',
+        'barcode', // ✅ Added
+        'price',
+        'cost_price',
+        'stock_quantity',
+    ]);
+
     $product = Product::create($data);
 
     // Stock check
@@ -145,6 +119,10 @@ public function store(Request $request)
     session()->flash('success', 'Product stocked successfully!');
     return redirect()->route('products.create');
 }
+
+
+
+// 
 
 
 
@@ -329,14 +307,28 @@ public function sellProduct(Request $request, $productId)
 
 public function liveSearch(Request $request)
 {
-    $query = $request->input('query');
+    // Use either 'search' or 'query' depending on your JS
+    $search = $request->input('search') ?? $request->input('query');
 
-    $products = Product::with('category')
-        ->where('name', 'like', "%$query%")
-        ->paginate(10);
+    $query = Product::with(['category', 'shop']);
 
-    return view('products.partials.table', compact('products'))->render(); // return partial
+    if ($search) {
+        $query->where('name', 'like', "%{$search}%");
+    }
+
+    $products = $query->paginate(10)->appends(['search' => $search]);
+
+    if ($request->ajax()) {
+        return view('products.partials.table', compact('products'))->render();
+    }
+
+    $categories = Category::all();
+    $shops = Shop::all();
+    return view('products.create', compact('products', 'categories', 'shops', 'search'));
 }
+
+
+
 public function getStock($id)
 {
     $product = Product::find($id);

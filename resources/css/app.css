@@ -3,7 +3,7 @@
 }
 
     .login-container {
-        background: url('sale.jpg') no-repeat center center;
+        background: linear-gradient(45deg, black, purple);
         background-size: cover;
         padding: 60px 20px;
         min-height: 100vh;
@@ -16,7 +16,7 @@
 .hero {
       position: relative;
       height: 100vh;
-      background-image: url('red-wal.jpg'); /* Replace with your image */
+        background: linear-gradient(45deg, black, purple);
       background-size: cover;
       background-position: center;
       color: white;
@@ -417,7 +417,7 @@ box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 #product-form{
-    width: 25%;
+    width: 20%;
 }
 
 
@@ -705,6 +705,48 @@ canvas {
     .flex-item {
         flex: 1 1 100%; /* Full width for each item */
     }
+
+#sales-table {
+    overflow-x: auto;    /* or 'scroll' if you want the scrollbar always visible */
+    max-width: 100%;     /* or a specific width like 400px */
+    display: block;      /* required for overflow to work on tables */
+    margin-right: 5rem;
+}
+
+.product-table{
+    overflow-x: auto;    /* or 'scroll' if you want the scrollbar always visible */
+    max-width: 100%;     /* or a specific width like 400px */
+    display: block;      /* required for overflow to work on tables */
+}
+
+#product-table{
+    margin-right: 4rem;
+    overflow-x: auto;    /* or 'scroll' if you want the scrollbar always visible */
+    max-width: 100%;     /* or a specific width like 400px */
+    display: block;      /* required for overflow to work on tables */
+
+}
+
+.table-exp{
+    
+    overflow-x: auto;    /* or 'scroll' if you want the scrollbar always visible */
+    max-width: 100%;     /* or a specific width like 400px */
+    display: block;      /* required for overflow to work on tables */
+    margin-right:4rem;
+}
+
+.tab-role{
+    
+    overflow-x: auto;    /* or 'scroll' if you want the scrollbar always visible */
+    max-width: 100%;     /* or a specific width like 400px */
+    display: block;      /* required for overflow to work on tables */
+    margin-right:1rem;
+}
+
+.table{
+    margin-right:3rem;
+}
+
 }
 
 @media (max-width: 480px) {

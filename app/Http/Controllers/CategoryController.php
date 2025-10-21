@@ -72,7 +72,8 @@ class CategoryController extends Controller
             'name' => $request->name,
         ]);
 
-        return response()->json(['message' => 'Category updated successfully', 'category' => $category]);
+        return redirect()->back()->with('success', 'Category updated successfully!');
+
     }
 
     public function destroy($id)
@@ -82,6 +83,6 @@ class CategoryController extends Controller
         }
 
         Category::findOrFail($id)->delete();
-        return response()->json(['message' => 'Category deleted successfully']);
+        return redirect()->back()->with('success', 'Category deleted successfully!');
     }
 }

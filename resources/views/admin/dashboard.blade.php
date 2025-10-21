@@ -7,18 +7,19 @@
     <div class="dashboard-stats">
         <div class="stat-box">
             <h4>🛒 Total Sales For The Week</h4>
-            <p>₦{{ $totalSalesThisWeek }}</p>
+            <p>₦{{ number_format($totalSalesThisWeek, 2) }}</p>
         </div>
 
         <div class="stat-box">
             <h4>💰 Revenue Today</h4>
-            <p>₦{{ $totalRevenueToday }}</p>
+            <p>₦{{ number_format($totalRevenueToday, 2) }}</p>
         </div>
 
         <div class="stat-box">
             <h4>📦 Products in Stock</h4>
             <p>{{ $productsInStock }}</p>
         </div>
+
         <div class="stat-box">
             <h4>🧾 Top Selling Products</h4>
             <ul>
@@ -27,6 +28,49 @@
                 @endforeach
             </ul>
         </div>
+
+        <!-- 🏷️ Discount Summary -->
+        <div class="stat-box">
+            <h4>🏷️ Discounts Summary</h4>
+            <ul style="list-style-type: none; padding-left: 0; font-size: 14px;">
+                <li>🗓️ <strong>Today:</strong> <b><span style="color: #e91e63;">₦{{ number_format($totalDiscountToday, 2) }}</span></b></li>
+                <li>📅 <strong>This Week:</strong> <b><span style="color: #3f51b5;">₦{{ number_format($totalDiscountThisWeek, 2) }}</span></b></li> 
+                <li>🗓️ <strong>This Month:</strong> <b><span style="color: #4caf50;">₦{{ number_format($totalDiscountThisMonth, 2) }}</span></b></li>
+            </ul>
+        </div>
+
+        <div class="stat-box">
+            <h4>💹 Profit Summary</h4>
+            <ul class="list-unstyled">
+                <li>📅 Daily Profit: <span style="color:green;">₦{{ number_format($dailyProfit, 2) }}</span></li>
+                <li>📆 Weekly Profit: <span style="color:green;">₦{{ number_format($weeklyProfit, 2) }}</span></li>
+                <li>🗓️ Monthly Profit: <span style="color:green;">₦{{ number_format($monthlyProfit, 2) }}</span></li>
+            </ul>
+        </div>
+
+        <div class="stat-box">
+    <h4> Net Profit & Loss Summary</h4>
+    <ul>
+        <li>💰 <strong>Today's Net Profit:</strong> 
+            <span style="color: {{ $netProfitToday < 0 ? 'red' : 'green' }};">
+                ₦{{ number_format($netProfitToday, 2) }}
+            </span>
+        </li>
+        <li>📅 <strong>This Week:</strong> 
+            <span style="color: {{ $netProfitWeek < 0 ? 'red' : 'green' }};">
+                ₦{{ number_format($netProfitWeek, 2) }}
+            </span>
+        </li>
+        <li>🗓️ <strong>This Month:</strong> 
+            <span style="color: {{ $netProfitMonth < 0 ? 'red' : 'green' }};">
+                ₦{{ number_format($netProfitMonth, 2) }}
+            </span>
+        </li>
+    </ul>
+</div>
+
+
+
     </div>
 
     <div class="chart-container-flex">

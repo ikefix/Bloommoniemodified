@@ -103,4 +103,73 @@ public function index()
         Expense::findOrFail($id)->delete();
         return redirect()->back()->with('success', 'Expense deleted!');
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public function indexmanager()
+{
+    $expenses = Expense::latest()->paginate(10); // fetch with pagination
+    return view('managerexpense.index', compact('expenses'));
 }
+
+
+
+    public function createmanager()
+    {
+        return view('managerexpense.create');
+    }
+
+    public function storemanager(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'amount' => 'required|numeric',
+            'description' => 'nullable|string',
+            'date' => 'required|date',
+        ]);
+
+        Expense::create([
+            'shop_id' => $request->shop_id,
+            'title' => $request->title,
+            'amount' => $request->amount,
+            'description' => $request->description,
+            'date' => $request->date,
+            'added_by' => Auth::user()->name ?? 'Cashier/Admin',
+        ]);
+
+
+        return redirect()->route('managerexpense.index')->with('success', 'Expense added successfully!');
+    }
+
+    public function destroymanager($id)
+    {
+        Expense::findOrFail($id)->delete();
+        return redirect()->back()->with('success', 'Expense deleted!');
+    }
+}
+
+
+
+
+
+
+
+
+
+
+

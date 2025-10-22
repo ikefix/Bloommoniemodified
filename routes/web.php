@@ -49,12 +49,16 @@ Route::get('/get-product/{barcode}', function ($barcode) {
 });
 
 
-Route::get('/barcode-manager', function () {
+Route::get('/barcode-Admin', function () {
     return view('barcode-manager');
 })->name('barcode.manager');
 
 Route::get('/get-product-name/{barcode}', [App\Http\Controllers\BarcodeController::class, 'getProductName']);
 
+
+Route::get('/barcode-Manager', function () {
+    return view('manager.barcode');
+})->name('manager.barcode');
 
 
 Route::get('/', function () {
@@ -242,3 +246,11 @@ Route::get('/Cashierexpense', [ExpenseController::class, 'indexcash'])->name('ca
 Route::get('/Cashierexpenses/create', [ExpenseController::class, 'createcash'])->name('cashierexpense.create');
 Route::post('/Cashierexpenses', [ExpenseController::class, 'storecash'])->name('cashierexpense.store');
 Route::delete('/Cashierexpenses/{id}', [ExpenseController::class, 'destroycash'])->name('cashierexpense.destroy');
+
+
+
+
+Route::get('/Managerexpense', [ExpenseController::class, 'indexmanager'])->name('managerexpense.index');
+Route::get('/Managerexpenses/create', [ExpenseController::class, 'createmanager'])->name('managerexpense.create');
+Route::post('/Managerexpenses', [ExpenseController::class, 'storemanager'])->name('managerexpense.store');
+Route::delete('/Managerexpenses/{id}', [ExpenseController::class, 'destroymanager'])->name('managerexpense.destroy');

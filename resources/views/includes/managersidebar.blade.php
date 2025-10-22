@@ -35,6 +35,18 @@
                 <span class="sidebar-icon">💰</span>
                 <span class="sidebar-text">Sales</span>
             </a>
+            <a href="{{ route('managerexpense.create') }}" class="sidebar-link">
+                <span class="sidebar-icon">🏬</span>
+                <span class="sidebar-text">Create Expense</span>
+            </a>
+            <a href="{{ route('managerexpense.index') }}" class="sidebar-link">
+                <span class="sidebar-icon">💰</span>
+                <span class="sidebar-text">View Expenses</span>
+            </a>
+            <a href="{{ route('manager.barcode') }}" class="sidebar-link">
+                <span class="sidebar-icon">🛡️</span>
+                <span class="sidebar-text">Barcode Manager</span>
+            </a>
             <a href="{{ route('user.notifications') }}" class="sidebar-link">
                 <span class="sidebar-icon">🔔</span>
                 <span class="sidebar-text">

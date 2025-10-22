@@ -8,9 +8,8 @@
 
         <!-- Fonts -->
         <link href="https://fonts.bunny.net/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="app.css">
         
-    {{-- @vite(['resources/sass/app.scss', 'resources/js/app.js', 'resources/css/app.css']) --}}
+        @vite(['resources/sass/app.scss', 'resources/js/app.js', 'resources/css/app.css'])
 
         {{-- <!-- Styles -->
         <style>
@@ -25,12 +24,9 @@
 
     
     </head>
-    <body class="antialiased">
-        
-
+        <body class="antialiased">
             <section class="hero">
-                <div class="relative flex items-top justify-center min-h-screen bg-gray-100 dark:bg-gray-900 sm:items-center py-4 sm:pt-0">
-                    @if (Route::has('login'))
+                @if (Route::has('login'))
                         <div class="top-right-links">
                             @auth
                                 <a href="{{ url('/home') }}" class="text-sm text-gray-700 dark:text-gray-500 underline">Home</a>
@@ -43,12 +39,16 @@
                             @endauth
                         </div>
                     @endif
+
                 <div class="hero-content">
-                    <h1>Smart Management System</h1>
+                    <h1>BloomMonie POS Management System</h1>
                     <p>Efficiently manage your operations, track performance, and make smarter decisions with our all-in-one management platform.</p>
                     <a href="{{ route('login') }}" class="btn">Get Started</a>
                 </div>
+
+                <div class="hero-image">
+                    <img src="{{ asset('warehouse-removebg-preview.png') }}" alt="BloomMonie Dashboard">
+                </div>
             </section>
-        </div>
-    </body>
+        </body>
 </html>

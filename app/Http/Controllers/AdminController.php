@@ -177,39 +177,104 @@ class AdminController extends Controller
         // Pass sales data to the view
         return view('admin.sales', compact('sales'));
     }
-
-    public function salesPage(Request $request)
-{
-    $date = $request->input('date', now()->toDateString());
     
 
-    $sales = PurchaseItem::with('product', 'product.category')
-        ->whereDate('created_at', $date)
-        ->orderBy('created_at', 'desc')
-        ->get();
+//     public function salesPage(Request $request)
+// {
+//     $date = $request->input('date', now()->toDateString());
+    
 
-    return view('admin.sales', compact('sales', 'date'));
-}
+//     $sales = PurchaseItem::with('product', 'product.category')
+//         ->whereDate('created_at', $date)
+//         ->orderBy('created_at', 'desc')
+//         ->get();
 
-// This handles just the AJAX search
-public function filterSales(Request $request)
-{
-    $date = $request->input('date', now()->toDateString());
-    $search = $request->input('search');
+//     return view('admin.sales', compact('sales', 'date'));
+// }
 
-    $query = PurchaseItem::with('product', 'product.category')
-        ->whereDate('created_at', $date);
 
-    if ($search) {
-        $query->whereHas('product', function ($q) use ($search) {
-            $q->where('name', 'like', '%' . $search . '%');
-        });
+
+public function salesPage(Request $request)
+    {
+        $date = $request->input('date', now()->toDateString());
+        $shops = Shop::all(); // ✅ Get all shops for dropdown
+
+        $sales = PurchaseItem::with(['product.category', 'shop'])
+            ->whereDate('created_at', $date)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('admin.sales', compact('sales', 'date', 'shops'));
     }
 
-    $sales = $query->orderBy('created_at', 'desc')->get();
 
-    return view('admin.partials.sales_table', compact('sales'))->render();
-}
+
+
+
+
+// This handles just the AJAX search
+// public function filterSales(Request $request)
+// {
+//     $date = $request->input('date', now()->toDateString());
+//     $search = $request->input('search');
+
+//     $query = PurchaseItem::with('product', 'product.category')
+//         ->whereDate('created_at', $date);
+
+//     if ($search) {
+//         $query->whereHas('product', function ($q) use ($search) {
+//             $q->where('name', 'like', '%' . $search . '%');
+//         });
+//     }
+
+//     $sales = $query->orderBy('created_at', 'desc')->get();
+
+//     return view('admin.partials.sales_table', compact('sales'))->render();
+// }
+
+
+
+public function filterSales(Request $request)
+    {
+        $date = $request->input('date', now()->toDateString());
+        $search = $request->input('search');
+        $shopId = $request->input('shop'); // ✅ Get shop filter
+
+        $query = PurchaseItem::with(['product.category', 'shop'])
+            ->whereDate('created_at', $date);
+
+        if ($search) {
+            $query->whereHas('product', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            });
+        }
+
+        if ($shopId) {
+            $query->where('shop_id', $shopId);
+        }
+
+        $sales = $query->orderBy('created_at', 'desc')->get();
+
+        return view('admin.partials.sales_table', compact('sales'))->render();
+    }
+
+
+
+
+//     public function deleteSale($id)
+// {
+//     $sale = PurchaseItem::find($id);
+
+//     if (!$sale) {
+//         return back()->with('error', 'Sale not found.');
+//     }
+
+//     $sale->delete();
+
+//     return back()->with('success', 'Sale deleted successfully.');
+// }
+
+
 
 
 // public function dashboard()

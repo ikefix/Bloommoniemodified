@@ -130,9 +130,19 @@ Route::get('/admin/profile', [AdminController::class, 'editProfile'])->name('adm
 Route::post('/admin/profile/update', [AdminController::class, 'updateProfile'])->name('admin.profile.update');
 
 // Route for admin sales page
-Route::get('/admin/sales', [AdminController::class, 'sales'])->name('admin.sales');
+// Route::get('/admin/sales', [AdminController::class, 'sales'])->name('admin.sales');
+// Route::get('/admin/filter-sales', [AdminController::class, 'filterSales'])->name('admin.sales.filter');
+
+Route::get('/admin/sales', [AdminController::class, 'salesPage'])->name('admin.sales');
 Route::get('/admin/filter-sales', [AdminController::class, 'filterSales'])->name('admin.sales.filter');
+// Route::delete('/admin/sales/{id}', [AdminController::class, 'deleteSale'])->name('admin.sales.delete');
+
+Route::delete('/admin/sales/{id}', [PurchaseItemController::class, 'destroy'])->name('admin.sales.destroy');
+
+
+
 Route::delete('/admin/users/{id}', [AdminController::class, 'deleteUser'])->name('admin.deleteUser');
+// Route::get('/admin/filter-sales', [PurchaseItemController::class, 'allSales']);
 
 
 // PRODUCT CREATE

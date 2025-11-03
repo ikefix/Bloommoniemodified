@@ -2,7 +2,6 @@
     <thead>
         <tr>
             <th>Product Name</th>
-            <th>Category</th>
             <th>Quantity</th>
             <th>Total Price</th>
             <th>Payment Method</th>
@@ -10,14 +9,14 @@
             <th>Shop</th>
             <th>Transaction ID</th>
             <th>Discount Value</th>
-            {{-- <th>Cashier</th> --}}
+            <th>Cashier</th>
+            <th>Action</th> {{-- 👈 new --}}
         </tr>
     </thead>
     <tbody>
         @forelse($sales as $sale)
-            <tr>
+            <tr id="sale-{{ $sale->id }}">
                 <td>{{ $sale->product->name ?? 'Product Deleted' }}</td>
-                <td>{{ $sale->product->category->name ?? 'Category Missing' }}</td>
                 <td>{{ $sale->quantity }}</td>
                 <td>
                     @if(!empty($sale->discount_value) && $sale->discount_value > 0)
@@ -36,12 +35,17 @@
                 <td>{{ ucfirst($sale->payment_method) }}</td>
                 <td>{{ $sale->created_at->format('Y-m-d H:i:s') }}</td>
                 <td>{{ $sale->shop->name ?? 'Unknown Shop' }}</td>
-                <td>{{ $sale->transaction_id ?? 'Unknown Transaction' }}</td>
-                <td>{{ $sale->discount_value ?? 'Unknown Transaction' }}</td>
-                {{-- <td>{{ $sale->shop->user_id->users->email ?? 'Unknown Shop' }}</td> --}}
+                <td>{{ $sale->transaction_id ?? '-' }}</td>
+                <td>{{ $sale->discount_value ?? '-' }}</td>
+                <td>{{ $sale->cashier->name ?? 'Unknown' }}</td> {{-- optional --}}
+                <td>
+                    <button class="btn btn-danger btn-sm delete-sale" data-id="{{ $sale->id }}">
+                        Revoke Sale
+                    </button>
+                </td>
             </tr>
         @empty
-            <tr><td colspan="6" class="text-center">No sales found</td></tr>
+            <tr><td colspan="10" class="text-center">No sales found</td></tr>
         @endforelse
     </tbody>
 </table>

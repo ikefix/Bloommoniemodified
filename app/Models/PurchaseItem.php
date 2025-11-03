@@ -20,6 +20,7 @@ class PurchaseItem extends Model
         'discount_type',      // 🆕 Added
         'discount_value',     // 🆕 Added
         'discount',           // 🆕 Added
+        'cashier_id', // ← add this
     ];
 
     /**
@@ -39,6 +40,12 @@ class PurchaseItem extends Model
     {
         return $this->belongsTo(Shop::class);
     }
+
+        public function cashier()
+    {
+        return $this->belongsTo(User::class, 'cashier_id');
+    }
+
 
     /**
      * Accessor: Calculate final price after discount

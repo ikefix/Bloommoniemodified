@@ -108,6 +108,7 @@ public function searchReceipt(Request $request)
                 'payment_method' => $validated['payment_method'],
                 'transaction_id' => $transactionId,
                 'shop_id'        => $product->shop_id,
+                'cashier_id'     => auth()->id(), // ✅ add this line
             ]);
 
             // 🔄 Update stock
@@ -165,6 +166,40 @@ public function searchReceipt(Request $request)
 
         return view('admin.sales', compact('sales', 'search', 'date', 'shops'));
     }
+
+
+//     public function allSales(Request $request)
+// {
+//     $search = $request->input('search');
+//     $date = $request->input('date', now()->toDateString()); // Default to today
+//     $shopId = $request->input('shop'); // 👈 Added: shop filter
+
+//     $sales = PurchaseItem::with(['product.category', 'shop'])
+//         ->when($search, function ($query, $search) {
+//             $query->whereHas('product', function ($q) use ($search) {
+//                 $q->where('name', 'like', "%{$search}%");
+//             });
+//         })
+//         ->when($date, function ($query, $date) {
+//             $query->whereDate('created_at', $date);
+//         })
+//         ->when($shopId, function ($query, $shopId) {
+//             $query->where('shop_id', $shopId);
+//         })
+//         ->orderBy('created_at', 'desc')
+//         ->get();
+
+//     $shops = Shop::all(); // ✅ Always fetch shops
+
+//     // ✅ If request is AJAX (fetch), return the full partial including shop filter
+//     if ($request->ajax()) {
+//         return view('admin.partials.sales_table', compact('sales', 'shops'))->render();
+//     }
+
+//     // ✅ Otherwise return the full page with shop list
+//     return view('admin.sales', compact('sales', 'search', 'date', 'shops'));
+// }
+
 
 
 
@@ -242,5 +277,28 @@ public function showReceipt(Request $request, $id)
 
     return view('receipts.receipt', compact('items', 'total', 'cashier', 'shopName'));
 }
+
+
+
+
+public function destroy($id)
+{
+    // Find the sale record
+    $sale = PurchaseItem::with('product')->findOrFail($id);
+
+    // ✅ Restore product stock
+    if ($sale->product) {
+        $sale->product->increment('stock_quantity', $sale->quantity);
+    }
+
+    // ✅ Delete the sale
+    $sale->delete();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Sale deleted and product stock restored successfully.',
+    ]);
+}
+
 
 }

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+{{-- @extends('layouts.app')
 
 
 @vite(['resources/sass/app.scss', 'resources/js/app.js', 'resources/css/app.css'])
@@ -352,7 +352,7 @@ finalForm.addEventListener('submit', function (e) {
 
 
 </script>
-@endsection
+@endsection --}}
 
 
 
@@ -363,7 +363,7 @@ finalForm.addEventListener('submit', function (e) {
 
 
 
-{{-- @extends('layouts.app')
+@extends('layouts.app')
 
 
 @vite(['resources/sass/app.scss', 'resources/js/app.js', 'resources/css/app.css'])
@@ -389,18 +389,16 @@ finalForm.addEventListener('submit', function (e) {
         @csrf
 
         <!-- Barcode Scanner Input -->
-<div class="form-group mb-3">
-    <label for="barcode-input">Scan Barcode</label>
-<input type="text" id="barcode_input" class="form-control" placeholder="Scan barcode here" autofocus>
-
-</div>
-
+        <div class="form-group mb-3">
+            <label for="barcode-input">Scan Barcode</label>
+            <input type="text" id="barcode_input" class="form-control" placeholder="Scan barcode here" autofocus>
+        </div>
 
         <!-- Product Search Input -->
         <div class="form-group">
             <label for="product_name">Search Product</label>
             <input type="text" id="product_name" class="form-control" placeholder="Search product name" autocomplete="off">
-            <div id="product_suggestions" class="suggestions-box"></div> <!-- Suggestions will be displayed here -->
+            <div id="product_suggestions" class="suggestions-box"></div>
             <small id="product-error" class="text-danger" style="display: none;">Product does not exist</small>
         </div>
 
@@ -478,18 +476,19 @@ finalForm.addEventListener('submit', function (e) {
         </div>
     </div>
 </div>
+
 <script>
 let productsList = [];
 const form = document.querySelector('.form');
 const previewBox = document.querySelector('#preview-box');
 const previewBody = document.querySelector('.card-body');
 const finalForm = document.querySelector('#final-submit-form');
-const barcodeInput = document.getElementById('barcode-input');
+const barcodeInput = document.getElementById('barcode_input');
 let scanTimeout;
-let typingTimer;
-let scanning = false;
+let scanningTimer;
+let scanningActive = false;
 
-// ✅ Prompt message helper (clean popup style)
+/* ✅ Popup Message Helper */
 function showPrompt(message, type = 'info') {
     let promptBox = document.getElementById('scanPrompt');
     if (!promptBox) {
@@ -515,52 +514,74 @@ function showPrompt(message, type = 'info') {
 
     promptBox.innerHTML = message;
     promptBox.style.display = 'block';
-    setTimeout(() => promptBox.style.display = 'none', 2000);
+    setTimeout(() => promptBox.style.display = 'none', 1800);
 }
 
-// ✅ Listen for USB scanner input (keyboard emulation)
+/* ✅ Detect Barcode Scanning */
 barcodeInput.addEventListener('keydown', () => {
-    if (!scanning) {
-        scanning = true;
-        showPrompt('🔍 Scanning... please wait', 'info');
+    if (!scanningActive) {
+        scanningActive = true;
+        showPrompt('🔍 Scanning in progress...', 'info');
     }
-    clearTimeout(typingTimer);
-    typingTimer = setTimeout(() => scanning = false, 1000);
+    clearTimeout(scanningTimer);
+    scanningTimer = setTimeout(() => scanningActive = false, 800);
 });
 
-barcodeInput.addEventListener('input', function() {
+/* ✅ Handle Barcode or Manual Input */
+barcodeInput.addEventListener('input', () => {
     clearTimeout(scanTimeout);
     scanTimeout = setTimeout(async () => {
-        const barcode = this.value.trim();
-        if (!barcode) return;
+        const query = barcodeInput.value.trim();
+        if (!query) return;
 
         try {
-            showPrompt(`✅ Scanned: ${barcode}`);
-            const res = await fetch(`/get-product/${barcode}`);
+            const res = await fetch(`/products/search-suggestions?query=${encodeURIComponent(query)}`);
             const data = await res.json();
 
-            if (!data.success || !data.name) {
-                showPrompt('❌ Product not found. Try again.', 'error');
-                this.value = '';
+            // If single product (barcode or exact name match)
+            if (data.success && data.name) {
+                document.querySelector('#product_name').value = data.name;
+                document.querySelector('#product').value = data.id;
+                document.querySelector('#price').value = data.price;
+                document.querySelector('#quantity').value = 1;
+                document.querySelector('#total_price').value = data.price;
+                showPrompt(`✅ ${data.name} loaded successfully!`, 'success');
+                barcodeInput.value = '';
                 return;
             }
 
-            document.querySelector('#product_name').value = data.name;
-            document.querySelector('#product').value = data.id || '';
-            document.querySelector('#price').value = data.price || 0;
-            document.querySelector('#quantity').value = 1;
-            document.querySelector('#total_price').value = data.price || 0;
-
-            showPrompt(`🎯 ${data.name} loaded successfully!`, 'success');
-            this.value = ''; // clear for next scan
-        } catch (err) {
-            console.error(err);
-            showPrompt('⚠️ Error fetching product.', 'error');
+            // If multiple results (manual typing)
+            if (Array.isArray(data) && data.length > 0) {
+                const suggestionBox = document.querySelector('#product_suggestions');
+                suggestionBox.innerHTML = '';
+                data.forEach(prod => {
+                    const item = document.createElement('div');
+                    item.classList.add('suggestion-item');
+                    item.textContent = `${prod.name} (₦${prod.price})`;
+                    item.style.cursor = 'pointer';
+                    item.onclick = () => {
+                        document.querySelector('#product_name').value = prod.name;
+                        document.querySelector('#product').value = prod.id;
+                        document.querySelector('#price').value = prod.price;
+                        document.querySelector('#quantity').value = 1;
+                        document.querySelector('#total_price').value = prod.price;
+                        suggestionBox.innerHTML = '';
+                    };
+                    suggestionBox.appendChild(item);
+                });
+            } else {
+                showPrompt('❌ Product not found!', 'error');
+            }
+        } catch (error) {
+            console.error(error);
+            showPrompt('⚠️ Error fetching product details.', 'error');
+        } finally {
+            barcodeInput.value = '';
         }
-    }, 400);
+    }, 500);
 });
 
-// ✅ Add Product to Cart
+/* ✅ Add Product to Cart */
 form.addEventListener('submit', function (e) {
     e.preventDefault();
 
@@ -777,4 +798,6 @@ finalForm.addEventListener('submit', function (e) {
 </script>
 
 
-@endsection --}}
+
+
+@endsection

@@ -40,13 +40,8 @@ use App\Http\Controllers\BarcodeController;
 //         ->header('Content-Type', 'image/png');
 // });
 
-Route::get('/get-product/{barcode}', function ($barcode) {
-    $product = Product::where('barcode_number', $barcode)->first();
-    return response()->json([
-        'success' => $product ? true : false,
-        'name' => $product->name ?? null
-    ]);
-});
+Route::get('/get-product/{barcode}', [App\Http\Controllers\BarcodeController::class, 'getProductName']);
+
 
 
 Route::get('/barcode-Admin', function () {

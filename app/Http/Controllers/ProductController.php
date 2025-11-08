@@ -166,32 +166,108 @@ class ProductController extends Controller
         return response()->json(['message' => 'Product deleted successfully']);
     }
 
-    // // 🔍 Search products by name for autocomplete feature
-    // public function searchSuggestions(Request $request)
-    // {
-    //     $query = strtolower($request->input('query'));
-    
-    //     $products = Product::whereRaw('LOWER(name) LIKE ?', ["%{$query}%"])
-    //         ->limit(10) // ✅ Limit to top 10 results
-    //         ->get(['id', 'name', 'price']);
-    
-    //     return response()->json($products);
-    // }
+//     public function searchSuggestions(Request $request)
+// {
+//     $query = strtolower($request->input('query'));
 
-    public function searchSuggestions(Request $request)
+//     // Get the shop_id assigned to the cashier (you might get it from the authenticated user)
+//     $shopId = auth()->user()->shop_id;  // Assuming the shop_id is stored in the user model
+
+//     $products = Product::where('shop_id', $shopId)  // Filter by the cashier's shop_id
+//         ->whereRaw('LOWER(name) LIKE ?', ["%{$query}%"]) // Search by product name
+//         ->limit(10)  // Limit to top 10 results
+//         ->get(['id', 'name', 'price']);
+
+//     return response()->json($products);
+// }
+
+// public function searchSuggestions(Request $request)
+// {
+//     try {
+//         $query = strtolower($request->input('query'));
+//         $shopId = auth()->check() ? auth()->user()->shop_id : null;
+
+//         $products = Product::where('shop_id', $shopId)
+//             ->where(function ($q) use ($query) {
+//                 $q->whereRaw('LOWER(name) LIKE ?', ["%{$query}%"])
+//                   ->orWhere('barcode', 'LIKE', "%{$query}%");
+//             })
+//             ->limit(10)
+//             ->get(['id', 'name', 'price', 'barcode']);
+
+//         if ($products->count() === 1) {
+//             return response()->json([
+//                 'success' => true,
+//                 'name' => $products[0]->name,
+//                 'price' => $products[0]->price,
+//                 'id' => $products[0]->id,
+//                 'barcode' => $products[0]->barcode,
+//             ]);
+//         }
+
+//         return response()->json($products);
+
+//     } catch (\Throwable $e) {
+//         // this will tell us the exact reason
+//         return response()->json([
+//             'success' => false,
+//             'message' => $e->getMessage(),
+//             'file' => $e->getFile(),
+//             'line' => $e->getLine(),
+//         ], 500);
+//     }
+// }
+
+
+
+public function searchSuggestions(Request $request)
 {
-    $query = strtolower($request->input('query'));
+    try {
+        $query = strtolower(trim($request->input('query')));
+        $shopId = auth()->check() ? auth()->user()->shop_id : null;
 
-    // Get the shop_id assigned to the cashier (you might get it from the authenticated user)
-    $shopId = auth()->user()->shop_id;  // Assuming the shop_id is stored in the user model
+        if (!$query) {
+            return response()->json([]); // empty search
+        }
 
-    $products = Product::where('shop_id', $shopId)  // Filter by the cashier's shop_id
-        ->whereRaw('LOWER(name) LIKE ?', ["%{$query}%"]) // Search by product name
-        ->limit(10)  // Limit to top 10 results
-        ->get(['id', 'name', 'price']);
+        $products = Product::where('shop_id', $shopId)
+            ->where(function ($q) use ($query) {
+                $q->whereRaw('LOWER(name) LIKE ?', ["%{$query}%"])
+                  ->orWhere('barcode', 'LIKE', "%{$query}%");
+            })
+            ->limit(10)
+            ->get(['id', 'name', 'price', 'barcode']);
 
-    return response()->json($products);
+        // ✅ If the query exactly matches a barcode, return one product
+        $exactBarcode = Product::where('shop_id', $shopId)
+            ->where('barcode', $query)
+            ->first(['id', 'name', 'price', 'barcode']);
+
+        if ($exactBarcode) {
+            return response()->json([
+                'success' => true,
+                'name' => $exactBarcode->name,
+                'price' => $exactBarcode->price,
+                'id' => $exactBarcode->id,
+                'barcode' => $exactBarcode->barcode,
+            ]);
+        }
+
+        // ✅ Otherwise, return list for name search suggestion
+        return response()->json($products);
+
+    } catch (\Throwable $e) {
+        return response()->json([
+            'success' => false,
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ], 500);
+    }
 }
+
+
+
 
 
     // ✅ Private function to check and send low stock notifications

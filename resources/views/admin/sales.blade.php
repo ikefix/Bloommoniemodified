@@ -83,8 +83,8 @@
     @endphp
 
     <h1 style="margin-bottom: 20px; font-size: 24px; color: #28a745; text-align:center;">
-    Total Sales: ₦{{ number_format($grandTotal, 2) }}
-</h1>
+        Total Sales: ₦{{ number_format($grandTotal, 2) }}
+    </h1>
 
     <div class="row mb-3">
         <div class="col-md-3">

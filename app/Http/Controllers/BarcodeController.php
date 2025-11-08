@@ -8,16 +8,20 @@ use App\Models\Product;
 class BarcodeController extends Controller
 {
     public function getProductName($barcode)
-    {
-        $product = Product::where('barcode_number', $barcode)->first(); // ✅ match your real column name
+{
+    $product = Product::where('barcode_number', $barcode)->first();
 
-        if (!$product) {
-            return response()->json(['success' => false, 'message' => 'Product not found']);
-        }
-
-        return response()->json([
-            'success' => true,
-            'name' => $product->name,
-        ]);
+    if (!$product) {
+        return response()->json(['success' => false, 'message' => 'Product not found']);
     }
+
+    return response()->json([
+        'success' => true,
+        'id' => $product->id,
+        'name' => $product->name,
+        'price' => $product->price,
+        'stock' => $product->stock ?? null,
+    ]);
+}
+
 }

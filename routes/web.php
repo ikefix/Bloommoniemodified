@@ -259,3 +259,8 @@ Route::get('/Managerexpense', [ExpenseController::class, 'indexmanager'])->name(
 Route::get('/Managerexpenses/create', [ExpenseController::class, 'createmanager'])->name('managerexpense.create');
 Route::post('/Managerexpenses', [ExpenseController::class, 'storemanager'])->name('managerexpense.store');
 Route::delete('/Managerexpenses/{id}', [ExpenseController::class, 'destroymanager'])->name('managerexpense.destroy');
+
+//ROUTE FOR EXPENSES END
+
+//ROUTE FOR REPORTS START
+// Route::get('/reports/sales', [AdminController::class, 'salesReport'])->name('reports.sales');

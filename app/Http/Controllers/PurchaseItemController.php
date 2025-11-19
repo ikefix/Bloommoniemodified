@@ -209,12 +209,97 @@ public function searchReceipt(Request $request)
 
 
         // View all sales FOR CASHIER
-        public function cashiersales(Request $request)
-{
-    $search = $request->input('search');
-    $date = $request->input('date', now()->toDateString());
+// public function cashiersales(Request $request)
+// {
+//     $user = auth()->user(); // Logged in cashier
 
-    $user = auth()->user(); // 👈 get the logged-in cashier
+//     $query = PurchaseItem::with(['product.category', 'shop'])
+//         ->where('shop_id', $user->shop_id); // show only cashier's shop
+
+//     // 🔍 SEARCH BY PRODUCT NAME
+//     if ($request->search) {
+//         $query->whereHas('product', function ($q) use ($request) {
+//             $q->where('name', 'like', "%{$request->search}%");
+//         });
+//     }
+
+//     // 🗓️ QUICK FILTERS: today, yesterday, week, month
+//     if ($request->quick) {
+//         switch ($request->quick) {
+//             case 'today':
+//                 $query->whereDate('created_at', today());
+//                 break;
+
+//             case 'yesterday':
+//                 $query->whereDate('created_at', today()->subDay());
+//                 break;
+
+//             case 'week':
+//                 $query->whereBetween('created_at', [
+//                     now()->startOfWeek(),
+//                     now()->endOfWeek()
+//                 ]);
+//                 break;
+
+//             case 'month':
+//                 $query->whereMonth('created_at', now()->month);
+//                 break;
+//         }
+//     }
+
+//     // 📅 MANUAL DATE RANGE
+//     if ($request->start_date) {
+//         $query->whereDate('created_at', '>=', $request->start_date);
+//     }
+
+//     if ($request->end_date) {
+//         $query->whereDate('created_at', '<=', $request->end_date);
+//     }
+
+//     // If no filter is used → show TODAY by default
+//     if (!$request->start_date && !$request->end_date && !$request->quick) {
+//         $query->whereDate('created_at', today());
+//     }
+
+//     $sales = $query->orderBy('created_at', 'desc')->get();
+
+//     return view('cashier.home-sales', [
+//         'sales' => $sales,
+//         'search' => $request->search,
+//         'start_date' => $request->start_date,
+//         'end_date' => $request->end_date,
+//         'quick' => $request->quick,
+//     ]);
+// }
+public function cashiersales(Request $request)
+{
+    $user = auth()->user();
+
+    $search     = $request->input('search');
+    $startDate  = $request->input('start_date');
+    $endDate    = $request->input('end_date');
+    $quick      = $request->input('quick');
+
+    // 📌 If no filter at all → DEFAULT TO TODAY
+    if (!$startDate && !$endDate && !$quick) {
+        $startDate = $endDate = now()->toDateString();
+    }
+
+    // 📌 QUICK FILTERS
+    if ($quick === 'today') {
+        $startDate = $endDate = now()->toDateString();
+    }
+    if ($quick === 'yesterday') {
+        $startDate = $endDate = now()->subDay()->toDateString();
+    }
+    if ($quick === 'week') {
+        $startDate = now()->startOfWeek()->toDateString();
+        $endDate   = now()->endOfWeek()->toDateString();
+    }
+    if ($quick === 'month') {
+        $startDate = now()->startOfMonth()->toDateString();
+        $endDate   = now()->endOfMonth()->toDateString();
+    }
 
     $sales = PurchaseItem::with(['product.category', 'shop'])
         ->when($search, function ($query, $search) {
@@ -222,12 +307,17 @@ public function searchReceipt(Request $request)
                 $q->where('name', 'like', "%{$search}%");
             });
         })
-        ->where('shop_id', $user->shop_id) // ✅ only show sales from cashier’s assigned shop
-        ->whereDate('created_at', $date) // ✅ filter by today’s date
+        ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
+            $query->whereBetween('created_at', [
+                $startDate . ' 00:00:00',
+                $endDate   . ' 23:59:59'
+            ]);
+        })
+        ->where('shop_id', auth()->user()->shop_id)
         ->orderBy('created_at', 'desc')
         ->get();
 
-    return view('cashier.home-sales', compact('sales', 'search', 'date'));
+    return view('cashier.home-sales', compact('sales'));
 }
 
 
@@ -299,6 +389,8 @@ public function destroy($id)
         'message' => 'Sale deleted and product stock restored successfully.',
     ]);
 }
+
+
 
 
 }

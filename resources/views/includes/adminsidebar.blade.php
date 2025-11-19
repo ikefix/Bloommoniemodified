@@ -40,7 +40,12 @@
             <a href="{{route('stock-transfers.create')}}" class="sidebar-link">
                 <span class="sidebar-icon">🏢</span>
                 <span class="sidebar-text">Stock Transfer</span>
-            </a>       
+            </a>   
+
+            {{-- <a href="{{route('reports.sales')}}" class="sidebar-link">
+                <span class="sidebar-icon">🏢</span>
+                <span class="sidebar-text">Report</span>
+            </a>      --}}
             <a href="{{ route('user.notifications') }}" class="sidebar-link">
                 <span class="sidebar-icon notify"><span class="badge bg-danger">{{ $unreadNotificationCount }}</span>🔔</span>
                 <span class="sidebar-text">

@@ -11,6 +11,33 @@
             <button onclick="window.print()" class="btn btn-primary btn-sm">🖨️ Print</button>
         </div>
     </div>
+<div class="card p-3 mb-3 no-print" style="background:#f8f9fa;">
+    <form method="GET" action="{{ route('cashier.home-sales') }}" class="row g-2">
+        <div class="col-md-4">
+            <label>Start Date</label>
+            <input type="date" name="start_date" class="form-control"
+                   value="{{ request('start_date') }}">
+        </div>
+
+        <div class="col-md-4">
+            <label>End Date</label>
+            <input type="date" name="end_date" class="form-control"
+                   value="{{ request('end_date') }}">
+        </div>
+
+        <div class="col-md-4 d-flex align-items-end">
+            <button class="btn btn-primary w-100">Filter Sales</button>
+        </div>
+    </form>
+
+    <!-- Quick Filters -->
+    <div class="mt-2 d-flex gap-2">
+        <a href="{{ route('cashier.home-sales', ['quick' => 'today']) }}" class="btn btn-outline-secondary btn-sm">Today</a>
+        <a href="{{ route('cashier.home-sales', ['quick' => 'yesterday']) }}" class="btn btn-outline-secondary btn-sm">Yesterday</a>
+        <a href="{{ route('cashier.home-sales', ['quick' => 'week']) }}" class="btn btn-outline-secondary btn-sm">This Week</a>
+        <a href="{{ route('cashier.home-sales', ['quick' => 'month']) }}" class="btn btn-outline-secondary btn-sm">This Month</a>
+    </div>
+</div>
 
     <!-- ✅ Report Header -->
     <div class="mb-4 text-center">

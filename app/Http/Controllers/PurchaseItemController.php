@@ -280,12 +280,12 @@ public function cashiersales(Request $request)
     $endDate    = $request->input('end_date');
     $quick      = $request->input('quick');
 
-    // 📌 If no filter at all → DEFAULT TO TODAY
+    // If no filter at all → DEFAULT TO TODAY
     if (!$startDate && !$endDate && !$quick) {
         $startDate = $endDate = now()->toDateString();
     }
 
-    // 📌 QUICK FILTERS
+    // QUICK FILTERS
     if ($quick === 'today') {
         $startDate = $endDate = now()->toDateString();
     }

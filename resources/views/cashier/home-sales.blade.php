@@ -62,7 +62,7 @@
     }
 @endphp
 
-<h1 style="margin-bottom: 20px; font-size: 24px; color: #28a745; text-align:center;">
+<h1 style="margin-bottom: 20px; font-size: 24px; color: #28a745; text-align:center;" class="total">
     Total Sales: ₦{{ number_format($grandTotal, 2) }}
 </h1>
 
@@ -133,6 +133,9 @@ document.getElementById("downloadPDF").addEventListener("click", function () {
     doc.setFontSize(11);
     doc.text("Cashier: {{ Auth::user()->name }}", 14, 23);
     doc.text("Date: {{ now()->format('F j, Y') }}", 14, 30);
+    doc.text("<h1 style="margin-bottom: 20px; font-size: 24px; color: #28a745; text-align:center;" class="total">
+    Total Sales: ₦{{ number_format($grandTotal, 2) }}
+</h1>")
 
     // Get table rows
     const table = document.getElementById("salesTable");
@@ -172,6 +175,10 @@ document.getElementById("downloadPDF").addEventListener("click", function () {
 <!-- ✅ Print Styling -->
 <style>
 @media print {
+.total{
+    display:block;
+}
+
     .no-print {
         display: none !important;
     }

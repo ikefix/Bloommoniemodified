@@ -22,6 +22,9 @@ return new class extends Migration
             $table->integer('quantity');
             $table->decimal('total_price', 10, 2);
 
+            $table->unsignedBigInteger('cashier_id')->nullable();
+
+
             // 🆕 Discount columns
             $table->enum('discount_type', ['none', 'percentage', 'flat'])->default('none');
             $table->decimal('discount_value', 10, 2)->default(0);

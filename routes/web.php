@@ -128,7 +128,7 @@ Route::post('/admin/profile/update', [AdminController::class, 'updateProfile'])-
 // Route::get('/admin/sales', [AdminController::class, 'sales'])->name('admin.sales');
 // Route::get('/admin/filter-sales', [AdminController::class, 'filterSales'])->name('admin.sales.filter');
 
-Route::get('/admin/sales', [AdminController::class, 'salesPage'])->name('admin.sales');
+Route::get('/admin/sales', [AdminController::class, 'salespage'])->name('admin.sales');
 Route::get('/admin/filter-sales', [AdminController::class, 'filterSales'])->name('admin.sales.filter');
 // Route::delete('/admin/sales/{id}', [AdminController::class, 'deleteSale'])->name('admin.sales.delete');
 

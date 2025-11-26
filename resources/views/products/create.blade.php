@@ -77,7 +77,7 @@
             <div class="mb-3">
                 <label for="barcode" class="form-label">Barcode</label>
                 <div class="input-group mb-2">
-                    <input type="text" name="barcode" id="barcode" class="form-control" readonly required>
+                    <input type="text" name="barcode" id="barcode" class="form-control" required>
                     <button type="button" id="generate-barcode" class="btn btn-secondary">Generate Code</button>
                 </div>
 

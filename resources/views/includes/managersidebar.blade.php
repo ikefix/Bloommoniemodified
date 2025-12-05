@@ -1,4 +1,11 @@
 @if(Auth::user()->role === 'manager')
+
+    <style>
+        .bx{
+            font-size: 1.5rem;
+        }
+    </style>
+
     <div id="adminSidebar" class="sidebar-expanded">
         <div class="sidebar-header">
             <img id="sidebarLogo" src="{{ asset('logobloomp.png') }}" alt="BloomMonie Dashboard" width="30px">

@@ -25,16 +25,20 @@
         </main>
     </div>    
     <script>
-        document.getElementById('toggleSidebarBtn').addEventListener('click', function () {
-            const sidebar = document.getElementById('adminSidebar');
-            sidebar.classList.toggle('sidebar-collapsed');
-    
-            const texts = sidebar.querySelectorAll('.sidebar-text');
-            texts.forEach(text => {
-                text.style.display = sidebar.classList.contains('sidebar-collapsed') ? 'inline' : 'none';
-            });
-        });
-    </script>
+document.getElementById('toggleSidebarBtn').addEventListener('click', function () {
+    const sidebar = document.getElementById('adminSidebar');
+    sidebar.classList.toggle('sidebar-collapsed');
+
+    const texts = sidebar.querySelectorAll('.sidebar-text');
+    texts.forEach(text => {
+        text.style.display = sidebar.classList.contains('sidebar-collapsed') ? 'inline' : 'none';
+    });
+
+    // Hide/show logo
+    const logo = document.getElementById('sidebarLogo');
+    logo.style.display = sidebar.classList.contains('sidebar-collapsed') ? 'block' : 'none';
+});
+</script>
 <script>
     function toggleSubmenu(button) {
         const submenu = button.nextElementSibling;

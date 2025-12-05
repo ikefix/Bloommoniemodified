@@ -29,7 +29,7 @@
 
     <div class="">
             {{-- <h2 class="mb-4">Product Inventory Overview 🧾</h2> --}}
-            <h2 class="mb-4">Available Categories 🧾</h2>
+            <h2 class="mb-4">Available Categories <i class='bx bx-receipt'></i></h2>
 
             @if (session('success'))
                 <div class="alert alert-success">{{ session('success') }}</div>

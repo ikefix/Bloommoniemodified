@@ -47,7 +47,7 @@
                 </div>
 
                 <div class="hero-image">
-                    <img src="{{ asset('warehouse-removebg-preview.png') }}" alt="BloomMonie Dashboard">
+                    <img src="{{ asset('logobloomp.png') }}" alt="BloomMonie Dashboard">
                 </div>
             </section>
         </body>

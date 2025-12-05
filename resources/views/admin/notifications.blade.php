@@ -3,7 +3,7 @@
 @section('admincontent')
     <h1>Notifications</h1>
 
-    <h3>🔔 Unread Notifications</h3>
+    <h3><i class='bx bx-bell'></i> Unread Notifications</h3>
     @if($unreadNotifications->count())
         <ul>
             @foreach($unreadNotifications as $notification)
@@ -27,7 +27,7 @@
 
     <hr>
 
-    <h3>📜 Read Notifications</h3>
+    <h3><i class='bx bx-receipt'></i> Read Notifications</h3>
     @if($readNotifications->count())
         <ul>
             @foreach($readNotifications as $notification)

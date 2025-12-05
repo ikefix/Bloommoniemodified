@@ -2,7 +2,7 @@
 
 @section('admincontent')
 <div class="container">
-    <h3>💰 Expenses List</h3>
+    <h3><i class='bx bx-dollar' ></i> Expenses List</h3>
 
     <a href="{{ route('expenses.create') }}" class="btn btn-primary mb-3">+ Add Expense</a>
 

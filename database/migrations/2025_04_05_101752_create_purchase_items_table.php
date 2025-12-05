@@ -21,6 +21,7 @@ return new class extends Migration
             $table->unsignedBigInteger('shop_id')->nullable();
             $table->integer('quantity');
             $table->decimal('total_price', 10, 2);
+            $table->unsignedBigInteger('cashier_id')->nullable();
 
             $table->unsignedBigInteger('cashier_id')->nullable();
 

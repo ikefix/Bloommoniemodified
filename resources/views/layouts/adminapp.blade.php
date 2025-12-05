@@ -17,6 +17,7 @@
     {{-- @vite(['resources/sass/app.scss', 'resources/js/app.js', 'resources/css/app.css']) --}}
     
     @vite(['resources/sass/app.scss', 'resources/js/app.js', 'resources/css/app.css'])
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
         {{-- <link rel="stylesheet" href="app.css"> --}}
 </head>
 <body>
@@ -27,17 +28,22 @@
             @yield('admincontent')
         </main>
     </div>
-    <script>
-        document.getElementById('toggleSidebarBtn').addEventListener('click', function () {
-            const sidebar = document.getElementById('adminSidebar');
-            sidebar.classList.toggle('sidebar-collapsed');
-    
-            const texts = sidebar.querySelectorAll('.sidebar-text');
-            texts.forEach(text => {
-                text.style.display = sidebar.classList.contains('sidebar-collapsed') ? 'inline' : 'none';
-            });
-        });
-    </script>
+   <script>
+document.getElementById('toggleSidebarBtn').addEventListener('click', function () {
+    const sidebar = document.getElementById('adminSidebar');
+    sidebar.classList.toggle('sidebar-collapsed');
+
+    const texts = sidebar.querySelectorAll('.sidebar-text');
+    texts.forEach(text => {
+        text.style.display = sidebar.classList.contains('sidebar-collapsed') ? 'inline' : 'none';
+    });
+
+    // Hide/show logo
+    const logo = document.getElementById('sidebarLogo');
+    logo.style.display = sidebar.classList.contains('sidebar-collapsed') ? 'block' : 'none';
+});
+</script>
+
 <script>
     function toggleSubmenu(button) {
         const submenu = button.nextElementSibling;

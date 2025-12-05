@@ -3,7 +3,11 @@
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
 
-define('LARAVEL_START', microtime(true));
+// define('LARAVEL_START', microtime(true));
+// $tenant = app('currentTenant');
+
+// // Example: fetch tenant users
+// $users = $tenant->users;
 
 /*
 |--------------------------------------------------------------------------

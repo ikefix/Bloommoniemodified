@@ -30,7 +30,7 @@
     </div>
 
     <div id="sales-table">
-        @include('admin.partials.sales_table', ['sales' => $sales, 'grandTotal' => $sales->sum(fn($sale) => max($sale->total_price - ($sale->discount ?? 0), 0))])
+        @include('admin.partials.sales_table')
     </div>
 </div>
 
@@ -46,12 +46,14 @@ function fetchSales() {
     const date = dateInput.value;
     const shop = shopSelect.value;
 
-    fetch(`/admin/filter-sales?search=${encodeURIComponent(search)}&date=${date}&shop=${shop}`, {
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    })
-    .then(res => res.text())
-    .then(data => tableWrapper.innerHTML = data);
-}
+        fetch(`/admin/filter-sales?search=${encodeURIComponent(search)}&date=${date}&shop=${shop}`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(res => res.text())
+        .then(data => {
+            tableWrapper.innerHTML = data;
+        });
+    }
 
 searchInput.addEventListener('input', fetchSales);
 dateInput.addEventListener('change', fetchSales);
@@ -76,6 +78,7 @@ document.addEventListener('click', function(e) {
             .then(data => {
                 if (data.success) {
                     document.getElementById(`sale-${id}`).remove();
+                    alert(data.message);
                 } else {
                     alert(data.message ?? "Failed to delete sale");
                 }

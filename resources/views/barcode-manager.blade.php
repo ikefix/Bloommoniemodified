@@ -2,7 +2,7 @@
 
 @section('admincontent')
 <div class="container">
-    <h2 class="mb-4">📦 Barcode Manager</h2>
+    <h2 class="mb-4"><i class='bx bx-package'></i> Barcode Manager</h2>
 
     <!-- Generate barcode from code -->
     <div class="card p-3 mb-4">

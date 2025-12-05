@@ -1,10 +1,13 @@
 @php
-    $grandTotal = $grandTotal ?? $sales->sum(fn($sale) => max($sale->total_price - ($sale->discount ?? 0), 0));
+    // Calculate grand total for this set of sales
+    $grandTotal = $sales->sum(function($sale) {
+        return max($sale->total_price - ($sale->discount ?? 0), 0);
+    });
 @endphp
 
-<h4 style="color: green; text-align: center;">
+<h1 style="margin-bottom: 20px; font-size: 24px; color: #28a745; text-align:center;">
     Total Sales: ₦{{ number_format($grandTotal, 2) }}
-</h4>
+</h1>
 
 <table class="table table-bordered">
     <thead>

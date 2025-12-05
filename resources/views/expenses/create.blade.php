@@ -2,7 +2,7 @@
 
 @section('admincontent')
 <div class="container">
-    <h3>➕ Add New Expense</h3>
+    <h3> Add New Expense</h3>
 
     @if ($errors->any())
         <div class="alert alert-danger">

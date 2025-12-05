@@ -1,6 +1,7 @@
 @if(Auth::user()->role === 'manager')
     <div id="adminSidebar" class="sidebar-expanded">
         <div class="sidebar-header">
+            <img id="sidebarLogo" src="{{ asset('logobloomp.png') }}" alt="BloomMonie Dashboard" width="30px">
             <button id="toggleSidebarBtn">&#9776;</button>
         </div>
         <nav class="sidebar-navigation">

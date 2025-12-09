@@ -89,7 +89,6 @@ Route::get('/manager/register', [ManagerController::class, 'showRegisterForm'])-
 Route::get('/manager/manage-roles', [ManagerController::class, 'role'])->name('manager.manage_role');
 Route::patch('/manager/update-role/{id}', [ManagerController::class, 'updateRole'])->name('manager.updateRole');
 
-Route::get('/manager/products', [ManagerController::class, 'viewProducts'])->name('manager.product');
 
 
     Route::get('/manager-dashboard', [ManagerController::class, 'dashboard'])->name('manager.jop')->middleware('role:manager');
@@ -292,6 +291,17 @@ Route::prefix('manager')->middleware(['auth','role:manager'])->group(function(){
     Route::post('/customers', [CustomerController::class,'store'])->name('manager.customers.store');
     Route::delete('/customers/{customer}', [CustomerController::class,'destroy'])->name('manager.customers.destroy');
 });
+
+
+
+
+
+// Route::get('/manager/products', [ProductController::class, 'managerProducts']);
+
+Route::get('/manager/products', [ManagerController::class, 'viewProducts'])->name('manager.product');
+
+
+
 
 //INVOICE ROUTE
 

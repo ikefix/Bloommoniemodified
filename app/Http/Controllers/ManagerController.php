@@ -139,23 +139,41 @@ class ManagerController extends Controller
         return redirect()->back()->with('success', 'User role updated successfully.');
     }
 
-    public function viewProducts()
+    // public function viewProducts()
+    // {
+    //     if (Auth::user()->role !== 'manager') {
+    //         abort(403, 'Unauthorized access');
+    //     }
+    
+    //     // Fetch categories
+    //     $categories = Category::all();
+    
+    //     // Fetch products
+    //     $products = Product::with('category')->paginate(10);
+    
+    //     // Fetch shops
+    //     $shops = Shop::all();  // Assuming the manager has access to all shops, adjust if needed
+    
+    //     // Return the view with the necessary data
+    //     return view('manager.product', compact('products', 'categories', 'shops'));
+    // }
+
+        public function viewProducts(Request $request)
     {
-        if (Auth::user()->role !== 'manager') {
-            abort(403, 'Unauthorized access');
-        }
-    
-        // Fetch categories
+        $search = $request->input('search');
+        $shopId = auth()->user()->shop_id;
+
+        
         $categories = Category::all();
-    
-        // Fetch products
-        $products = Product::with('category')->paginate(10);
-    
-        // Fetch shops
-        $shops = Shop::all();  // Assuming the manager has access to all shops, adjust if needed
-    
-        // Return the view with the necessary data
-        return view('manager.product', compact('products', 'categories', 'shops'));
+
+        $products = Product::with('category')
+            ->where('shop_id', $shopId)
+            ->when($search, function ($query, $search) {
+                $query->where('name', 'like', "%$search%");
+            })
+            ->paginate(10);
+
+        return view('manager.product', compact('products', 'categories', 'search'));
     }
     
     

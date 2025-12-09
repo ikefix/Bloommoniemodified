@@ -306,6 +306,7 @@ public function searchSuggestions(Request $request)
     return view('products.create', compact('categories', 'products', 'shops'));
 }
 
+
     
 
     // Fetch products by category (for AJAX suggestions)

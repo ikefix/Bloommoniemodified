@@ -59,7 +59,7 @@
                 <span class="sidebar-icon"><i class='bx bxs-discount'></i></span>
                 <span class="sidebar-text">Create Customer</span>
             </a>  
-            <a href="{{route('admin.invoices.create')}}" class="sidebar-link">
+            <a href="{{route('admin.invoices.create')}" class="sidebar-link">
                 <span class="sidebar-icon"><i class='bx bx-transfer'></i></span>
                 <span class="sidebar-text">Create Invoice</span>
             </a>

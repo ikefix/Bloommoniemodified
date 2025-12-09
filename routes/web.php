@@ -99,6 +99,9 @@ Route::post('/manager/register', [ManagerController::class, 'storeStaff'])->name
 // Route::post('/manager/product', [ManagerController::class, 'store'])->name('manager.store');
 Route::post('/products', [ProductController::class, 'store'])->name('products.store');
 
+
+    Route::put('/products/{id}', [ProductController::class, 'update'])->name('products.update');
+
 // END OF MANAGER ROUTES
 
 
@@ -145,7 +148,6 @@ Route::delete('/admin/users/{id}', [AdminController::class, 'deleteUser'])->name
 Route::middleware(['auth'])->group(function () {
     Route::get('/products/create', [ProductController::class, 'create'])->name('products.create')->middleware('admin');
     // Route::post('/products', [ProductController::class, 'store'])->name('products.store')->middleware('admin');
-    Route::put('/products/{id}', [ProductController::class, 'update'])->name('products.update')->middleware('admin');
 });
 
 
@@ -223,11 +225,6 @@ Route::get('/stock-transfers/create', [StockTransferController::class, 'create']
 Route::post('/stock-transfers', [StockTransferController::class, 'store'])->name('stock-transfers.store');
 
 
-// Route::get('/shops/{shop}/products', function (\App\Models\Shop $shop) {
-//     $products = $shop->products()->with('category')->get();
-//     return response()->json(['products' => $products]);
-// });
-
 Route::get('/products-by-shop/{shopId}', [StockTransferController::class, 'getProductsByShop']);
 // Route::get('/products-by-shop/{shopId}', [App\Http\Controllers\ProductController::class, 'getProductsByShop']);
 
@@ -304,6 +301,61 @@ Route::get('/manager/products', [ManagerController::class, 'viewProducts'])->nam
 
 
 //INVOICE ROUTE
+
+
+
+
+
+
+
+
+
+Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function(){
+    Route::get('invoices/create', [InvoiceController::class, 'create'])->name('admin.invoices.create');
+    Route::post('invoices', [InvoiceController::class, 'store'])->name('admin.invoices.store');
+});
+
+Route::prefix('manager')->middleware(['auth', 'role:manager'])->group(function(){
+    Route::get('invoices/create', [InvoiceController::class, 'create'])->name('manager.invoices.create');
+    Route::post('invoices', [InvoiceController::class, 'store'])->name('manager.invoices.store');
+});
+
+Route::prefix('cashier')->middleware(['auth', 'role:cashier'])->group(function(){
+    Route::get('invoices/create', [InvoiceController::class, 'create'])->name('cashier.invoices.create');
+    Route::post('invoices', [InvoiceController::class, 'store'])->name('cashier.invoices.store');
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Admin
 Route::prefix('admin')->middleware(['auth','role:admin'])->group(function () {

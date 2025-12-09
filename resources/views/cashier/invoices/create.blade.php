@@ -1,6 +1,6 @@
-@extends('layouts.adminapp')
+@extends('layouts.app')
 
-@section('admincontent')
+@section('content')
 <div class="container-fluid p-0">
     <h2>Create Invoice</h2>
 
@@ -50,6 +50,7 @@
             <label for="product_id">Select Product</label>
             <select name="goods[product_id]" id="product_id" class="form-control" required disabled>
                 <option value="">-- Choose Product --</option>
+                {{-- Options will be populated via JS when shop is selected --}}
             </select>
         </div>
 
@@ -110,7 +111,6 @@
     const taxInput = document.querySelector('#tax');
     const finalTotalInput = document.querySelector('#final_total');
 
-    // Products JSON passed from controller
     let products = @json($products);
 
     // Show customer info on selection
@@ -141,7 +141,7 @@
         resetPriceTotal();
     });
 
-    // Update price and total
+    // Update price when product changes
     productSelect.addEventListener('change', updatePriceTotal);
     quantityInput.addEventListener('input', updatePriceTotal);
     discountInput.addEventListener('input', updateFinalTotal);

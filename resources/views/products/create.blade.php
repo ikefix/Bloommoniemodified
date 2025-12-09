@@ -24,7 +24,7 @@
             <div class="mb-3">
                 <label for="shop_id">Select Shop</label>
                 <select name="shop_id" id="shop_id" class="form-control" required>
-                    <option value="">-- Select Category --</option>
+                    <option value="">-- Select Shop --</option>
                     @foreach ($shops as $shop)
                         <option value="{{ $shop->id }}">{{ $shop->name }}</option>
                     @endforeach
@@ -88,15 +88,12 @@
                 <button type="button" id="download-barcode" class="btn btn-success mt-2" style="display:none;">Download Barcode</button>
             </div>
 
-
-
-        
             <!-- Hidden Product ID (used for editing) -->
             <input type="hidden" name="product_id" id="product_id">
-        
-            <!-- 🔥 Hidden _method field to switch POST/PUT via JS -->
+
+            <!-- Hidden _method field to switch POST/PUT -->
             <input type="hidden" name="_method" id="form_method" value="POST">
-        
+
             <!-- Submit Button -->
             <button type="submit" class="btn btn-primary">Add Product</button>
         </form>
@@ -126,140 +123,127 @@
 
 
 <script>
-document.getElementById('generate-barcode').addEventListener('click', function() {
-    const code = 'BC' + Date.now();
-    document.getElementById('barcode').value = code;
+    // Barcode generation
+    document.getElementById('generate-barcode').addEventListener('click', function() {
+        const code = 'BC' + Date.now();
+        document.getElementById('barcode').value = code;
 
-    // Generate the barcode in SVG
-    JsBarcode("#barcode-preview", code, {
-        format: "CODE128",
-        lineColor: "#000",
-        width: 2,
-        height: 60,
-        displayValue: true
+        JsBarcode("#barcode-preview", code, {
+            format: "CODE128",
+            lineColor: "#000",
+            width: 2,
+            height: 60,
+            displayValue: true
+        });
+
+        document.getElementById('download-barcode').style.display = 'inline-block';
     });
 
-    // Show the download button
-    document.getElementById('download-barcode').style.display = 'inline-block';
-});
+    // Barcode download
+    document.getElementById('download-barcode').addEventListener('click', function() {
+        const svg = document.getElementById('barcode-preview');
+        const serializer = new XMLSerializer();
+        const svgBlob = new Blob([serializer.serializeToString(svg)], {type: 'image/svg+xml'});
+        const url = URL.createObjectURL(svgBlob);
 
-document.getElementById('download-barcode').addEventListener('click', function() {
-    const svg = document.getElementById('barcode-preview');
-    const serializer = new XMLSerializer();
-    const svgBlob = new Blob([serializer.serializeToString(svg)], {type: 'image/svg+xml'});
-    const url = URL.createObjectURL(svgBlob);
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            const pngUrl = canvas.toDataURL("image/png");
 
-    // Convert SVG → Canvas → PNG for download
-    const img = new Image();
-    img.onload = function() {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-        const pngUrl = canvas.toDataURL("image/png");
+            const link = document.createElement('a');
+            link.href = pngUrl;
+            link.download = `${document.getElementById('barcode').value}.png`;
+            link.click();
 
-        // Create download link
-        const link = document.createElement('a');
-        link.href = pngUrl;
-        link.download = `${document.getElementById('barcode').value}.png`;
-        link.click();
+            URL.revokeObjectURL(url);
+        };
+        img.src = url;
+    });
 
-        URL.revokeObjectURL(url);
-    };
-    img.src = url;
-});
+    // Prevent submitting without barcode
+    document.getElementById('product-form').addEventListener('submit', function(e) {
+        const barcode = document.getElementById('barcode').value.trim();
+        if (!barcode) {
+            e.preventDefault();
+            alert('Please generate a barcode before adding the product.');
+        }
+    });
 
-// Prevent submitting without barcode
-document.getElementById('product-form').addEventListener('submit', function(e) {
-    const barcode = document.getElementById('barcode').value.trim();
-    if (!barcode) {
-        e.preventDefault();
-        alert('Please generate a barcode before adding the product.');
-    }
-});
-</script>
+    // Edit button logic
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('edit-btn')) {
+            const button = e.target;
 
+            document.querySelector('#product_id').value = button.dataset.id;
+            document.querySelector('#name').value = button.dataset.name;
+            document.querySelector('#category_id').value = button.dataset.category;
+            document.querySelector('#price').value = button.dataset.price;
+            document.querySelector('#cost_price').value = button.dataset.cost;
+            document.querySelector('#stock_quantity').value = button.dataset.stock;
+            document.querySelector('#stock_limit').value = button.dataset.limit;
+            document.querySelector('#shop_id').value = button.closest('tr').querySelector('td:nth-child(7)').innerText;
 
+            // Populate barcode if exists
+            if (button.dataset.barcode) {
+                document.querySelector('#barcode').value = button.dataset.barcode;
+                JsBarcode("#barcode-preview", button.dataset.barcode, {
+                    format: "CODE128",
+                    lineColor: "#000",
+                    width: 2,
+                    height: 60,
+                    displayValue: true
+                });
+                document.getElementById('download-barcode').style.display = 'inline-block';
+            }
 
+            // Set form method to PUT for editing
+            document.querySelector('#form_method').value = 'PUT';
 
-<script>
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    });
+
+    // Submit form via fetch (POST or PUT)
     const form = document.querySelector('#product-form');
     const productIdField = document.querySelector('#product_id');
-
-    // Set default form action and method field on load
-    const methodField = document.querySelector('#form_method');
     const csrfToken = document.querySelector('input[name="_token"]').value;
 
     form.addEventListener('submit', function(e) {
-        const productId = productIdField.value.trim();
-
-        let url, method;
-
-        if (productId) {
-            // Editing mode
-            url = `/products/${productId}`;
-            method = 'PUT';
-        } else {
-            // Creating new product
-            url = `{{ route('products.store') }}`;
-            method = 'POST';
-        }
-
         e.preventDefault();
+        
+        const productId = productIdField.value.trim();
+        const method = document.querySelector('#form_method').value;
+        const url = productId ? `/products/${productId}` : `{{ route('products.store') }}`;
 
         const formData = new FormData(form);
         formData.append('_method', method);
 
         fetch(url, {
             method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': csrfToken
-            },
+            headers: { 'X-CSRF-TOKEN': csrfToken },
             body: formData
         })
         .then(response => {
-            if (response.ok) {
-                location.reload();
-            } else {
-                alert(method + ' failed.');
-            }
+            if (response.ok) location.reload();
+            else alert(method + ' failed.');
         })
-        .catch(error => console.error('Error:', error));
+        .catch(err => console.error(err));
     });
-</script>
 
-
-<script>
-document.addEventListener('click', function (e) {
-    if (e.target.classList.contains('edit-btn')) {
-        const button = e.target;
-
-        document.querySelector('#product_id').value = button.dataset.id;
-        document.querySelector('#name').value = button.dataset.name;
-        document.querySelector('#category_id').value = button.dataset.category;
-        document.querySelector('#price').value = button.dataset.price;
-        document.querySelector('#cost_price').value = button.dataset.cost;
-        document.querySelector('#stock_quantity').value = button.dataset.stock;
-        document.querySelector('#stock_limit').value = button.dataset.limit;
-
-        // Scroll to form for better UX
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-});
-</script>
-
-
-<script>
+    // Delete product via fetch
     document.querySelectorAll('.delete-form').forEach(form => {
         form.addEventListener('submit', function(e) {
-            e.preventDefault(); // stop form from reloading page
-    
+            e.preventDefault();
             if (!confirm('Delete this product?')) return;
-    
+
             const action = this.getAttribute('action');
             const token = this.querySelector('input[name="_token"]').value;
-    
+
             fetch(action, {
                 method: 'POST',
                 headers: {
@@ -267,83 +251,39 @@ document.addEventListener('click', function (e) {
                     'X-Requested-With': 'XMLHttpRequest',
                     'Accept': 'application/json'
                 },
-                body: new URLSearchParams({
-                    '_method': 'DELETE'
-                })
+                body: new URLSearchParams({'_method': 'DELETE'})
             })
             .then(response => {
                 if (response.ok) {
-                    // Remove the row from DOM
-                    const row = this.closest('tr');
-                    row.remove();
-    
-                    // Show success alert
+                    this.closest('tr').remove();
                     const alert = document.createElement('div');
                     alert.className = 'alert alert-success alert-dismissible fade show';
                     alert.style.position = 'fixed';
                     alert.style.top = '20px';
                     alert.style.right = '20px';
                     alert.style.zIndex = 9999;
-                    alert.innerHTML = `
-                        <strong>Deleted!</strong> Product deleted successfully.
-                        <button type="button" class="close" data-dismiss="alert">&times;</button>
-                    `;
+                    alert.innerHTML = `<strong>Deleted!</strong> Product deleted successfully.
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>`;
                     document.body.appendChild(alert);
-                } else {
-                    alert("Something went wrong.");
-                }
+                } else alert("Something went wrong.");
             })
             .catch(err => console.error(err));
         });
     });
-    </script>
-    <script>
-        document.getElementById('live-search').addEventListener('input', function () {
-            let query = this.value;
-    
-            fetch(`/products/search?query=${query}`, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
+
+    // Live search & pagination
+    document.getElementById('live-search').addEventListener('input', function () {
+        const query = this.value;
+        fetch(`/products/search?query=${query}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
             .then(res => res.text())
-            .then(html => {
-                document.getElementById('product-table').innerHTML = html;
-            });
-        });
-    </script>
-    <script>
-$(document).ready(function () {
-    function fetchProducts(url = '?', search = '') {
-        $.ajax({
-            url: url,
-            type: 'GET',
-            data: { search: search }, // <-- use 'search' to match controller
-            success: function (data) {
-                $('#product-table').html(data);
-            },
-            error: function () {
-                alert('Something went wrong while fetching products.');
-            }
-        });
-    }
-
-    // Live search
-    $('#live-search').on('input', function () {
-        let search = $(this).val();
-        fetchProducts('?page=1', search); // reset to page 1 when searching
+            .then(html => document.getElementById('product-table').innerHTML = html);
     });
-
-    // Pagination
-    $(document).on('click', '#product-table .pagination a', function (e) {
-        e.preventDefault();
-        let url = $(this).attr('href');
-        let search = $('#live-search').val();
-        fetchProducts(url, search);
-    });
-});
-
 </script>
+
+
+
+
+
 
     
 @endsection

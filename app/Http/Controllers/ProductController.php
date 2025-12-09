@@ -15,51 +15,6 @@ use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
-    // Fetch all products (with category data)
-    // public function index(Request $request)
-    // {
-    //     $query = Product::with('category');
-    
-    //     // If user is typing in search box
-    //     if ($search = $request->input('search')) {
-    //         $query->where('name', 'like', "%{$search}%");
-    //     }
-    
-    //     // Pagination — show 10 products per page
-    //     $products = $query->paginate(10);
-    
-    //     // AJAX response: just send the table fragment
-    //     if ($request->ajax()) {
-    //         return view('products.partials.table', compact('products'))->render();
-    //     }
-    
-    //     // Normal view load
-    //     $categories = Category::all(); // if you still need it on the page
-    //     return view('products.index', compact('products', 'categories'));
-    // }
-
-//     public function index(Request $request)
-// {
-//     // Load products with related category and shop
-//     $query = Product::with(['category', 'shop']);
-
-//     // 🔍 Handle search input
-//     if ($search = $request->input('search')) {
-//         $query->where('name', 'like', "%{$search}%");
-//     }
-
-//     // 📄 Paginate results (10 per page)
-//     $products = $query->paginate(10);
-
-//     // ⚡ Handle AJAX requests (for live search or pagination)
-//     if ($request->ajax()) {
-//         return view('products.partials.table', compact('products'))->render();
-//     }
-
-//     // 🌍 Load full page normally
-//     $categories = Category::all(); // still needed for dropdown filters, etc.
-//     return view('products.create', compact('products', 'categories'));
-// }
 
     
 
@@ -165,58 +120,6 @@ class ProductController extends Controller
         Product::findOrFail($id)->delete();
         return response()->json(['message' => 'Product deleted successfully']);
     }
-
-//     public function searchSuggestions(Request $request)
-// {
-//     $query = strtolower($request->input('query'));
-
-//     // Get the shop_id assigned to the cashier (you might get it from the authenticated user)
-//     $shopId = auth()->user()->shop_id;  // Assuming the shop_id is stored in the user model
-
-//     $products = Product::where('shop_id', $shopId)  // Filter by the cashier's shop_id
-//         ->whereRaw('LOWER(name) LIKE ?', ["%{$query}%"]) // Search by product name
-//         ->limit(10)  // Limit to top 10 results
-//         ->get(['id', 'name', 'price']);
-
-//     return response()->json($products);
-// }
-
-// public function searchSuggestions(Request $request)
-// {
-//     try {
-//         $query = strtolower($request->input('query'));
-//         $shopId = auth()->check() ? auth()->user()->shop_id : null;
-
-//         $products = Product::where('shop_id', $shopId)
-//             ->where(function ($q) use ($query) {
-//                 $q->whereRaw('LOWER(name) LIKE ?', ["%{$query}%"])
-//                   ->orWhere('barcode', 'LIKE', "%{$query}%");
-//             })
-//             ->limit(10)
-//             ->get(['id', 'name', 'price', 'barcode']);
-
-//         if ($products->count() === 1) {
-//             return response()->json([
-//                 'success' => true,
-//                 'name' => $products[0]->name,
-//                 'price' => $products[0]->price,
-//                 'id' => $products[0]->id,
-//                 'barcode' => $products[0]->barcode,
-//             ]);
-//         }
-
-//         return response()->json($products);
-
-//     } catch (\Throwable $e) {
-//         // this will tell us the exact reason
-//         return response()->json([
-//             'success' => false,
-//             'message' => $e->getMessage(),
-//             'file' => $e->getFile(),
-//             'line' => $e->getLine(),
-//         ], 500);
-//     }
-// }
 
 
 

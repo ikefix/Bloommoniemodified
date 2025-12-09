@@ -272,6 +272,24 @@ box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     justify-content: space-evenly;
 }
 
+.form-fess{
+    width: 400px;
+    margin-left: 1rem;
+}
+
+.row-two{
+    display: flex;
+    gap: 1rem;
+}
+
+.row-three{
+    width: auto;
+}
+
+/* .mb-2 input, textarea{
+    width: 70%;
+} */
+
 
 #toggleSidebarBtn {
     background: none;

@@ -13,11 +13,13 @@ use App\Http\Controllers\ProductPermissionController;
 use App\Http\Controllers\StockTransferController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CustomerController;
 use Milon\Barcode\DNS1D;
 use App\Models\Product;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\BarcodeController;
+use App\Http\Controllers\InvoiceController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -260,7 +262,48 @@ Route::get('/Managerexpenses/create', [ExpenseController::class, 'createmanager'
 Route::post('/Managerexpenses', [ExpenseController::class, 'storemanager'])->name('managerexpense.store');
 Route::delete('/Managerexpenses/{id}', [ExpenseController::class, 'destroymanager'])->name('managerexpense.destroy');
 
-//ROUTE FOR EXPENSES END
+//ROUTE FOR CREATE CUSTOMER
 
-//ROUTE FOR REPORTS START
-// Route::get('/reports/sales', [AdminController::class, 'salesReport'])->name('reports.sales');
+// Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function() {
+//     Route::get('/customers', [CustomerController::class, 'index'])->name('admin.customers.index');
+//     Route::get('/customers/create', [CustomerController::class, 'create'])->name('admin.customers.create');
+//     Route::post('/customers', [CustomerController::class, 'store'])->name('admin.customers.store');
+//     Route::delete('/customers/{customer}', [CustomerController::class, 'destroy'])->name('admin.customers.destroy');
+// });
+
+// // Manager Routes
+// Route::prefix('manager')->middleware(['auth', 'role:manager'])->group(function() {
+//     Route::get('/customers', [CustomerController::class, 'index'])->name('manager.customers.index');
+//     Route::get('/customers/create', [CustomerController::class, 'create'])->name('manager.customers.create');
+//     Route::post('/customers', [CustomerController::class, 'store'])->name('manager.customers.store');
+//     Route::delete('/customers/{customer}', [CustomerController::class, 'destroy'])->name('manager.customers.destroy');
+// });
+
+// Admin
+Route::prefix('admin')->middleware(['auth','role:admin'])->group(function(){
+    Route::get('/customers', [CustomerController::class,'index'])->name('admin.customers.index');
+    Route::post('/customers', [CustomerController::class,'store'])->name('admin.customers.store');
+    Route::delete('/customers/{customer}', [CustomerController::class,'destroy'])->name('admin.customers.destroy');
+});
+
+// Manager
+Route::prefix('manager')->middleware(['auth','role:manager'])->group(function(){
+    Route::get('/customers', [CustomerController::class,'index'])->name('manager.customers.index');
+    Route::post('/customers', [CustomerController::class,'store'])->name('manager.customers.store');
+    Route::delete('/customers/{customer}', [CustomerController::class,'destroy'])->name('manager.customers.destroy');
+});
+
+//INVOICE ROUTE
+
+// Admin
+Route::prefix('admin')->middleware(['auth','role:admin'])->group(function () {
+    Route::get('/invoices/create', [InvoiceController::class, 'create'])->name('admin.invoices.create');
+    Route::post('/invoices', [InvoiceController::class, 'store'])->name('admin.invoices.store');
+});
+
+// Manager
+Route::prefix('manager')->middleware(['auth','role:manager'])->group(function () {
+    Route::get('/invoices/create', [InvoiceController::class, 'create'])->name('manager.invoices.create');
+    Route::post('/invoices', [InvoiceController::class, 'store'])->name('manager.invoices.store');
+});
+

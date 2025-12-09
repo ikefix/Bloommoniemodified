@@ -49,6 +49,22 @@
                 <span class="sidebar-text">Stock Transfer</span>
             </a>   
 
+             <a class="sidebar-link collapsible-btn" onclick="toggleSubmenu(this)">
+                <span class="sidebar-icon"><i class='bx bx-user'></i></span>
+                <span class="sidebar-text">C M</span>
+                <span class="arrow">&#9662;</span> <!-- down arrow -->
+            </a>
+            <div class="submenu">
+            <a href="{{ route('admin.customers.index') }}" class="sidebar-link">
+                <span class="sidebar-icon"><i class='bx bxs-discount'></i></span>
+                <span class="sidebar-text">Create Customer</span>
+            </a>  
+            <a href="{{route('admin.invoices.create')}}" class="sidebar-link">
+                <span class="sidebar-icon"><i class='bx bx-transfer'></i></span>
+                <span class="sidebar-text">Create Invoice</span>
+            </a>
+            </div>
+
             {{-- <a href="{{route('reports.sales')}}" class="sidebar-link">
                 <span class="sidebar-icon">🏢</span>
                 <span class="sidebar-text">Report</span>

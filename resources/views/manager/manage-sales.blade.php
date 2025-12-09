@@ -24,12 +24,78 @@
     }
 @endphp
 
-<h1 style="margin-bottom: 20px; font-size: 24px; color: #28a745; text-align:center;">
-    Total Sales: ₦{{ number_format($grandTotal, 2) }}
-</h1>
+<div class="row mb-3">
+        <div class="col-md-3">
+            <input type="text" id="search-input" class="form-control" placeholder="Search product name" value="{{ $search ?? '' }}">
+        </div>
+
+        <div class="col-md-3">
+            <input type="date" id="date-input" class="form-control" value="{{ $date ?? now()->toDateString() }}">
+        </div>
+
+        {{-- <div class="col-md-3">
+            <select id="shop-input" class="form-control">
+                <option value="">All Shops</option>
+                @foreach($shops as $s)
+                    <option value="{{ $s->id }}" @if(isset($shop) && $shop == $s->id) selected @endif>{{ $s->name }}</option>
+                @endforeach
+            </select>
+        </div> --}}
+    </div>
 
     <div id="receipt">
-        @include('admin.partials.sales_table')
+        @php
+            // Calculate grand total for this set of sales
+            $grandTotal = $sales->sum(function($sale) {
+                return max($sale->total_price - ($sale->discount ?? 0), 0);
+            });
+        @endphp
+
+        <h1 style="margin-bottom: 20px; font-size: 24px; color: #28a745; text-align:center;">
+            Total Sales: ₦{{ number_format($grandTotal, 2) }}
+        </h1>
+
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Product</th>
+                    <th>Category</th>
+                    <th>Shop</th>
+                    <th>Quantity</th>
+                    <th>Total Price</th>
+                    <th>Discount</th>
+                    <th>Date</th>
+                    <th>Action</th> {{-- NEW --}}
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($sales as $sale)
+                    <tr id="sale-{{ $sale->id }}">
+                        <td>{{ $loop->iteration }}</td>
+                        <td>{{ $sale->product->name ?? 'N/A' }}</td>
+                        <td>{{ $sale->product->category->name ?? 'N/A' }}</td>
+                        <td>{{ $sale->shop->name ?? 'N/A' }}</td>
+                        <td>{{ $sale->quantity }}</td>
+                        <td>₦{{ number_format($sale->total_price, 2) }}</td>
+                        <td>₦{{ number_format($sale->discount ?? 0, 2) }}</td>
+                        <td>{{ $sale->created_at->format('d M Y H:i') }}</td>
+
+                        {{-- DELETE BUTTON --}}
+                        <td>
+                            <button class="btn btn-danger btn-sm delete-sale"
+                                data-id="{{ $sale->id }}">
+                                Revoke
+                            </button>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="9" class="text-center">No sales found</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>

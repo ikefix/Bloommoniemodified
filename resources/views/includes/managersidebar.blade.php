@@ -51,6 +51,10 @@
                 <span class="sidebar-icon"><i class='bx bxs-discount'></i></span>
                 <span class="sidebar-text">View Expenses</span>
             </a>
+            <a href="{{ route('manager.customers.index') }}" class="sidebar-link">
+                <span class="sidebar-icon"><i class='bx bxs-discount'></i></span>
+                <span class="sidebar-text">C M</span>
+            </a>
             <a href="{{ route('manager.barcode') }}" class="sidebar-link">
                 <span class="sidebar-icon"><i class='bx bx-barcode-reader'></i></span>
                 <span class="sidebar-text">Barcode Manager</span>

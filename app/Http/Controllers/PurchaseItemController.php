@@ -324,22 +324,26 @@ public function cashiersales(Request $request)
 
         // View all sales FOR MANAGER
         public function managersales(Request $request)
-        {
-            $search = $request->input('search');
-            $date = $request->input('date', now()->toDateString()); // 👈 Default to today
-    
-            $sales = PurchaseItem::with(['product.category'])
-                ->when($search, function ($query, $search) {
-                    $query->whereHas('product', function ($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%");
-                    });
-                })
-                ->whereDate('created_at', $date) // 👈 Only today's records
-                ->orderBy('created_at', 'desc')
-                ->get();
-    
-            return view('manager.manage-sales', compact('sales', 'search', 'date'));
-        }
+{
+    $search = $request->input('search');
+    $date = $request->input('date', now()->toDateString());
+
+    $sales = PurchaseItem::with(['product.category'])
+        ->where('shop_id', auth()->user()->shop_id) // 👈 LIMIT TO MANAGER'S SHOP
+        ->when($search, function ($query, $search) {
+            $query->whereHas('product', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            });
+        })
+        ->whereDate('created_at', $date)
+        ->orderBy('created_at', 'desc')
+        ->get();
+            
+        $shops = Shop::all();
+
+        return view('manager.manage-sales', compact('sales', 'search', 'date', 'shops'));
+}
+
 
 public function showReceipt(Request $request, $id)
 {

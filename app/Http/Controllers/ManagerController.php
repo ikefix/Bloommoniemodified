@@ -206,32 +206,37 @@ class ManagerController extends Controller
 
 public function dashboard()
 {   
-    // Start of the week (Monday)
-    $startOfWeek = Carbon::now()->startOfWeek(); // default is Monday
-    $endOfWeek = Carbon::now()->endOfWeek();     // Sunday
+    $shopId = auth()->user()->shop_id;
+
+    $startOfWeek = Carbon::now()->startOfWeek(); 
+    $endOfWeek = Carbon::now()->endOfWeek();
     $today = Carbon::today();
 
-    // 💸 Total sales today
-    $totalSalesThisWeek = PurchaseItem::whereBetween('created_at', [$startOfWeek, $endOfWeek])
-    ->sum('total_price');
+    // Weekly sales
+    $totalSalesThisWeek = PurchaseItem::where('shop_id', $shopId)
+        ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
+        ->sum('total_price');
 
-    // 💰 Revenue today (same for now)
-    $totalRevenueToday =  PurchaseItem::whereDate('created_at', $today)
-    ->sum('total_price');
+    // Today's revenue
+    $totalRevenueToday = PurchaseItem::where('shop_id', $shopId)
+        ->whereDate('created_at', $today)
+        ->sum('total_price');
 
-    // 📦 Count of products still in stock
-    $productsInStock = Product::where('stock_quantity', '>', 0)->count();
+    // Products in stock for this shop
+    $productsInStock = Product::where('shop_id', $shopId)
+        ->where('stock_quantity', '>', 0)
+        ->count();
 
-    // 🧾 Top selling products *for today only*
-    $topSelling = PurchaseItem::whereDate('created_at', $today)
+    // Top selling today
+    $topSelling = PurchaseItem::where('shop_id', $shopId)
+        ->whereDate('created_at', $today)
         ->select('product_id', DB::raw('SUM(quantity) as total_sold'))
         ->groupBy('product_id')
         ->orderByDesc('total_sold')
-        ->with('product') // eager load product
+        ->with('product')
         ->take(5)
         ->get();
 
-    // 🥧 Pie chart data
     $topSellingProductNames = [];
     $topSellingProductSales = [];
 
@@ -240,8 +245,9 @@ public function dashboard()
         $topSellingProductSales[] = $item->total_sold;
     }
 
-    // 📈 Sales trend over the last 7 days
-    $salesTrend = PurchaseItem::select(
+    // Sales trend (7-day chart)
+    $salesTrend = PurchaseItem::where('shop_id', $shopId)
+        ->select(
             DB::raw('DATE(created_at) as date'),
             DB::raw('SUM(total_price) as total')
         )
@@ -274,4 +280,5 @@ public function dashboard()
         'salesTrendData'
     ));
 }
+
 }

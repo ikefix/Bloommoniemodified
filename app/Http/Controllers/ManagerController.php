@@ -166,6 +166,10 @@ class ManagerController extends Controller
         
         $categories = Category::all();
 
+            
+    //     // Fetch shops
+        $shops = Shop::all();  // Assuming the manager has access to all shops, adjust if needed
+
         $products = Product::with('category')
             ->where('shop_id', $shopId)
             ->when($search, function ($query, $search) {
@@ -173,7 +177,7 @@ class ManagerController extends Controller
             })
             ->paginate(10);
 
-        return view('manager.product', compact('products', 'categories', 'search'));
+        return view('manager.product', compact('products', 'categories', 'search', 'shops'));
     }
     
     

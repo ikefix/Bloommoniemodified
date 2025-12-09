@@ -172,11 +172,8 @@ class ManagerController extends Controller
                 $query->where('name', 'like', "%$search%");
             })
             ->paginate(10);
-        
-        // Fetch shops
-        $shops = Shop::all();  // Assuming the manager has access to all shops, adjust if needed
 
-        return view('manager.product', compact('products', 'categories', 'search', 'shops'));
+        return view('manager.product', compact('products', 'categories', 'search'));
     }
     
     

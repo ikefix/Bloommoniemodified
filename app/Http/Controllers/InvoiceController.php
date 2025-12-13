@@ -14,8 +14,10 @@ class InvoiceController extends Controller
     public function create()
     {
         $customers = Customer::all();
-        $shops = Shop::all(); // 👈 Add this so the view has $shops
-        $products = Product::where('shop_id', Auth::user()->shop_id)->get();
+        $shops = Shop::all();
+
+        // FIX: Fetch ALL products, not just user's shop
+        $products = Product::all();
 
         if (Auth::user()->role === 'admin') {
             return view('admin.invoices.create', compact('customers', 'products', 'shops'));
@@ -26,29 +28,60 @@ class InvoiceController extends Controller
         }
     }
 
+
     public function store(Request $request)
-    {
-        $request->validate([
-            'customer_id' => 'required|exists:customers,id',
-            'goods' => 'required|array',
-            'discount' => 'nullable|numeric',
-            'tax' => 'nullable|numeric',
-            'total' => 'required|numeric',
-        ]);
+{
+    $request->validate([
+        'customer_id' => 'required|exists:customers,id',
+        'shop_id' => 'required|exists:shops,id',
+        'goods' => 'required|array',
+        'discount' => 'nullable|numeric',
+        'tax' => 'nullable|numeric',
+        'total' => 'required|numeric',
+        'payment_type' => 'required|in:full,part',
+        'amount_paid' => 'nullable|numeric',
+        'balance' => 'nullable|numeric',
+    ]);
 
-        Invoice::create([
-            'customer_id' => $request->customer_id,
-            'user_id' => Auth::id(),
-            'shop_id' => Auth::user()->shop_id,
-            'invoice_number' => 'INV-' . time(),
-            'invoice_date' => now(),
-            'goods' => $request->goods,
-            'discount' => $request->discount ?? 0,
-            'tax' => $request->tax ?? 0,
-            'total' => $request->total,
-        ]);
+    // Extract product details
+    $productId = $request->goods['product_id'];
+    $qty = $request->goods['quantity'];
 
-        return redirect()->back()->with('success', 'Invoice created successfully!');
+    // Fetch product
+    $product = Product::findOrFail($productId);
+
+    // CHECK IF ENOUGH STOCK EXISTS
+    if ($product->stock_quantity < $qty) {
+        return back()->with('error', 'Not enough stock available. Current stock: ' . $product->stock_quantity);
     }
+
+    // DEDUCT STOCK
+    $product->stock_quantity -= $qty;
+    $product->save();
+
+    // Determine payment status
+    $status = ($request->balance > 0) ? 'owing' : 'paid';
+
+    // Create invoice
+    Invoice::create([
+        'customer_id' => $request->customer_id,
+        'user_id' => Auth::id(),
+        'shop_id' => $request->shop_id,
+        'invoice_number' => 'INV-' . time(),
+        'invoice_date' => now(),
+        'goods' => $request->goods,
+        'discount' => $request->discount ?? 0,
+        'tax' => $request->tax ?? 0,
+        'total' => $request->total,
+        'payment_type' => $request->payment_type,
+        'amount_paid' => $request->amount_paid ?? 0,
+        'balance' => $request->balance ?? 0,
+        'payment_status' => $status,
+    ]);
+
+    return redirect()->back()->with('success', 'Invoice created successfully! Stock updated.');
+}
+
+
 }
 

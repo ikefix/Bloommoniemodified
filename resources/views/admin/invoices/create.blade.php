@@ -47,7 +47,7 @@
 
         {{-- Product Selection --}}
         <div class="mb-3">
-            <label for="product_id">Select Product</label>
+            <label>Select Product</label>
             <select name="goods[product_id]" id="product_id" class="form-control" required disabled>
                 <option value="">-- Choose Product --</option>
             </select>
@@ -73,28 +73,48 @@
 
         {{-- Discount --}}
         <div class="mb-3">
-            <label>Discount (Optional)</label>
+            <label>Discount (optional)</label>
             <input type="number" name="discount" id="discount" class="form-control" min="0" value="0">
         </div>
 
         {{-- Tax --}}
         <div class="mb-3">
-            <label>Tax (Optional)</label>
+            <label>Tax (optional)</label>
             <input type="number" name="tax" id="tax" class="form-control" min="0" value="0">
         </div>
 
-        {{-- Final Total --}}
+        {{-- Final TOTAL --}}
         <div class="mb-3">
             <label>Final Total</label>
             <input type="text" name="total" id="final_total" class="form-control" readonly>
+        </div>
+
+        {{-- PAYMENT TYPE --}}
+        <div class="mb-3">
+            <label>Payment Type</label>
+            <select name="payment_type" id="payment_type" class="form-control" required>
+                <option value="full">Full Payment</option>
+                <option value="part">Part Payment</option>
+            </select>
+        </div>
+
+        {{-- AMOUNT PAID (SHOW ONLY IF PART PAYMENT) --}}
+        <div class="mb-3 d-none" id="amount_paid_wrapper">
+            <label>Amount Paid</label>
+            <input type="number" name="amount_paid" id="amount_paid" class="form-control" min="0" value="0">
+        </div>
+
+        {{-- BALANCE --}}
+        <div class="mb-3">
+            <label>Balance</label>
+            <input type="text" name="balance" id="balance" class="form-control" readonly>
         </div>
 
         <button type="submit" class="btn btn-primary">Create Invoice</button>
     </form>
 </div>
 
-{{-- JS for dynamic behavior --}}
-@push('scripts')
+{{-- JS --}}
 <script>
     const customers = document.querySelector('#customer_id');
     const emailSpan = document.querySelector('#customer_email');
@@ -110,24 +130,30 @@
     const taxInput = document.querySelector('#tax');
     const finalTotalInput = document.querySelector('#final_total');
 
-    // Products JSON passed from controller
+    const paymentType = document.querySelector('#payment_type');
+    const amountPaidWrapper = document.querySelector('#amount_paid_wrapper');
+    const amountPaidInput = document.querySelector('#amount_paid');
+    const balanceInput = document.querySelector('#balance');
+
     let products = @json($products);
 
-    // Show customer info on selection
-    customers.addEventListener('change', function(){
+    // CUSTOMER AUTOFILL
+    customers.addEventListener('change', function () {
         const selected = customers.selectedOptions[0];
-        emailSpan.textContent = selected.dataset.email || '-';
-        phoneSpan.textContent = selected.dataset.phone || '-';
-        companySpan.textContent = selected.dataset.company || '-';
+        emailSpan.textContent = selected.dataset.email;
+        phoneSpan.textContent = selected.dataset.phone;
+        companySpan.textContent = selected.dataset.company;
     });
 
-    // Enable products when shop is selected
-    shopSelect.addEventListener('change', function(){
+    // FILTER PRODUCT BY SHOP
+    shopSelect.addEventListener('change', function () {
+        const shopId = Number(this.value);
         productSelect.innerHTML = '<option value="">-- Choose Product --</option>';
-        const shopId = parseInt(this.value);
-        if(shopId){
+
+        if (shopId) {
             productSelect.disabled = false;
-            products.filter(p => p.shop_id === shopId)
+
+            products.filter(p => Number(p.shop_id) === shopId)
                 .forEach(p => {
                     const opt = document.createElement('option');
                     opt.value = p.id;
@@ -138,36 +164,64 @@
         } else {
             productSelect.disabled = true;
         }
+
         resetPriceTotal();
     });
 
-    // Update price and total
+    // PRICE + TOTAL CALC
     productSelect.addEventListener('change', updatePriceTotal);
     quantityInput.addEventListener('input', updatePriceTotal);
     discountInput.addEventListener('input', updateFinalTotal);
     taxInput.addEventListener('input', updateFinalTotal);
+    amountPaidInput.addEventListener('input', calculateBalance);
+    paymentType.addEventListener('change', toggleAmountPaid);
 
-    function updatePriceTotal(){
-        const price = parseFloat(productSelect.selectedOptions[0]?.dataset.price || 0);
-        const qty = parseInt(quantityInput.value) || 1;
+    function updatePriceTotal() {
+        const selected = productSelect.selectedOptions[0];
+        const price = parseFloat(selected?.dataset?.price || 0);
+        const qty = Number(quantityInput.value) || 1;
+
         productPrice.value = price.toFixed(2);
         totalInput.value = (price * qty).toFixed(2);
+
         updateFinalTotal();
     }
 
-    function updateFinalTotal(){
-        const total = parseFloat(totalInput.value) || 0;
-        const discount = parseFloat(discountInput.value) || 0;
-        const tax = parseFloat(taxInput.value) || 0;
-        finalTotalInput.value = (total - discount + tax).toFixed(2);
+    function updateFinalTotal() {
+        const total = Number(totalInput.value) || 0;
+        const discount = Number(discountInput.value) || 0;
+        const tax = Number(taxInput.value) || 0;
+
+        const finalTotal = total - discount + tax;
+        finalTotalInput.value = finalTotal.toFixed(2);
+
+        calculateBalance();
     }
 
-    function resetPriceTotal(){
+    function toggleAmountPaid() {
+        if (paymentType.value === "part") {
+            amountPaidWrapper.classList.remove('d-none');
+        } else {
+            amountPaidWrapper.classList.add('d-none');
+            amountPaidInput.value = 0;
+        }
+        calculateBalance();
+    }
+
+    function calculateBalance() {
+        const finalTotal = Number(finalTotalInput.value) || 0;
+        const amountPaid = Number(amountPaidInput.value) || 0;
+
+        const balance = finalTotal - amountPaid;
+        balanceInput.value = balance.toFixed(2);
+    }
+
+    function resetPriceTotal() {
         productPrice.value = '';
         totalInput.value = '';
         finalTotalInput.value = '';
+        balanceInput.value = '';
     }
 </script>
-@endpush
 
 @endsection

@@ -302,6 +302,19 @@ Route::get('/manager/products', [ManagerController::class, 'viewProducts'])->nam
 
 //INVOICE ROUTE
 
+// web.php (admin routes)
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function() {
+    Route::get('/invoices/owing', [InvoiceController::class, 'owing'])->name('admin.invoices.owing');
+    Route::get('/invoices/{invoice}/edit-payment', [InvoiceController::class, 'editPayment'])->name('admin.invoices.edit-payment');
+    Route::post('/invoices/{invoice}/update-payment', [InvoiceController::class, 'updatePayment'])->name('admin.invoices.update-payment');
+});
+
+// manager routes
+Route::middleware(['auth', 'role:manager'])->prefix('manager')->group(function() {
+    Route::get('/invoices/owing', [InvoiceController::class, 'owing'])->name('manager.invoices.owing');
+    Route::get('/invoices/{invoice}/edit-payment', [InvoiceController::class, 'editPayment'])->name('manager.invoices.edit-payment');
+    Route::post('/invoices/{invoice}/update-payment', [InvoiceController::class, 'updatePayment'])->name('manager.invoices.update-payment');
+});
 
 
 

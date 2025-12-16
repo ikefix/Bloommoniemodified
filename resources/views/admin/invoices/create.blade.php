@@ -1,117 +1,135 @@
 @extends('layouts.adminapp')
 
 @section('admincontent')
-<div class="container-fluid p-0">
-    <h2>Create Invoice</h2>
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Create Invoice</h3>
+                </div>
+                <div class="card-body">
 
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
+                    @if(session('success'))
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            {{ session('success') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
 
-    <form action="{{ auth()->user()->role === 'admin' ? route('admin.invoices.store') : (auth()->user()->role === 'manager' ? route('manager.invoices.store') : route('cashier.invoices.store')) }}" method="POST">
-        @csrf
+                    <form action="{{ auth()->user()->role === 'admin' ? route('admin.invoices.store') : (auth()->user()->role === 'manager' ? route('manager.invoices.store') : route('cashier.invoices.store')) }}" method="POST">
+                        @csrf
 
-        {{-- Customer Selection --}}
-        <div class="mb-3">
-            <label for="customer_id">Select Customer</label>
-            <select name="customer_id" id="customer_id" class="form-control" required>
-                <option value="">-- Choose Customer --</option>
-                @foreach($customers as $customer)
-                    <option value="{{ $customer->id }}"
-                        data-email="{{ $customer->email }}"
-                        data-phone="{{ $customer->phone }}"
-                        data-company="{{ $customer->company }}">
-                        {{ $customer->name }}
-                    </option>
-                @endforeach
-            </select>
+                        {{-- Customer Selection --}}
+                        <div class="mb-3">
+                            <label for="customer_id" class="form-label">Select Customer</label>
+                            <select name="customer_id" id="customer_id" class="form-select" required>
+                                <option value="">-- Choose Customer --</option>
+                                @foreach($customers as $customer)
+                                    <option value="{{ $customer->id }}"
+                                        data-email="{{ $customer->email }}"
+                                        data-phone="{{ $customer->phone }}"
+                                        data-company="{{ $customer->company }}">
+                                        {{ $customer->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        {{-- Customer Info --}}
+                        <div class="row mb-3">
+                            <div class="col-md-4"><strong>Email:</strong> <span id="customer_email">-</span></div>
+                            <div class="col-md-4"><strong>Phone:</strong> <span id="customer_phone">-</span></div>
+                            <div class="col-md-4"><strong>Company:</strong> <span id="customer_company">-</span></div>
+                        </div>
+
+                        {{-- Shop Selection --}}
+                        <div class="mb-3">
+                            <label for="shop_id" class="form-label">Select Shop</label>
+                            <select name="shop_id" id="shop_id" class="form-select" required>
+                                <option value="">-- Choose Shop --</option>
+                                @foreach($shops as $shop)
+                                    <option value="{{ $shop->id }}">{{ $shop->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        {{-- Product Selection --}}
+                        <div class="mb-3">
+                            <label for="product_id" class="form-label">Select Product</label>
+                            <select name="goods[product_id]" id="product_id" class="form-select" required disabled>
+                                <option value="">-- Choose Product --</option>
+                            </select>
+                        </div>
+
+                        <div class="row">
+                            {{-- Price --}}
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Price</label>
+                                <input type="text" id="product_price" class="form-control" readonly>
+                            </div>
+
+                            {{-- Quantity --}}
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Quantity</label>
+                                <input type="number" name="goods[quantity]" id="product_quantity" class="form-control" min="1" value="1">
+                            </div>
+
+                            {{-- Total --}}
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Total</label>
+                                <input type="text" name="goods[total_price]" id="product_total" class="form-control" readonly>
+                            </div>
+                        </div>
+
+                        {{-- Discount + Tax --}}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Discount (Optional)</label>
+                                <input type="number" name="discount" id="discount" class="form-control" min="0" value="0">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Tax (Optional)</label>
+                                <input type="number" name="tax" id="tax" class="form-control" min="0" value="0">
+                            </div>
+                        </div>
+
+                        {{-- Final Total --}}
+                        <div class="mb-3">
+                            <label class="form-label">Final Total</label>
+                            <input type="text" name="total" id="final_total" class="form-control" readonly>
+                        </div>
+
+                        {{-- Payment Type --}}
+                        <div class="mb-3">
+                            <label class="form-label">Payment Type</label>
+                            <select name="payment_type" id="payment_type" class="form-select" required>
+                                <option value="full">Full Payment</option>
+                                <option value="part">Part Payment</option>
+                            </select>
+                        </div>
+
+                        {{-- Amount Paid --}}
+                        <div class="mb-3 d-none" id="amount_paid_wrapper">
+                            <label class="form-label">Amount Paid</label>
+                            <input type="number" name="amount_paid" id="amount_paid" class="form-control" min="0" value="0">
+                        </div>
+
+                        {{-- Balance --}}
+                        <div class="mb-3">
+                            <label class="form-label">Balance</label>
+                            <input type="text" name="balance" id="balance" class="form-control" readonly>
+                        </div>
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-success btn-lg">Create Invoice</button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
         </div>
-
-        {{-- Display Selected Customer Info --}}
-        <div class="mb-3">
-            <p>Email: <span id="customer_email">-</span></p>
-            <p>Phone: <span id="customer_phone">-</span></p>
-            <p>Company: <span id="customer_company">-</span></p>
-        </div>
-
-        {{-- Shop Selection --}}
-        <div class="mb-3">
-            <label for="shop_id">Select Shop</label>
-            <select name="shop_id" id="shop_id" class="form-control" required>
-                <option value="">-- Choose Shop --</option>
-                @foreach($shops as $shop)
-                    <option value="{{ $shop->id }}">{{ $shop->name }}</option>
-                @endforeach
-            </select>
-        </div>
-
-        {{-- Product Selection --}}
-        <div class="mb-3">
-            <label>Select Product</label>
-            <select name="goods[product_id]" id="product_id" class="form-control" required disabled>
-                <option value="">-- Choose Product --</option>
-            </select>
-        </div>
-
-        {{-- Display Price --}}
-        <div class="mb-3">
-            <label>Price</label>
-            <input type="text" id="product_price" class="form-control" readonly>
-        </div>
-
-        {{-- Quantity --}}
-        <div class="mb-3">
-            <label>Quantity</label>
-            <input type="number" name="goods[quantity]" id="product_quantity" class="form-control" min="1" value="1">
-        </div>
-
-        {{-- Total --}}
-        <div class="mb-3">
-            <label>Total</label>
-            <input type="text" name="goods[total_price]" id="product_total" class="form-control" readonly>
-        </div>
-
-        {{-- Discount --}}
-        <div class="mb-3">
-            <label>Discount (optional)</label>
-            <input type="number" name="discount" id="discount" class="form-control" min="0" value="0">
-        </div>
-
-        {{-- Tax --}}
-        <div class="mb-3">
-            <label>Tax (optional)</label>
-            <input type="number" name="tax" id="tax" class="form-control" min="0" value="0">
-        </div>
-
-        {{-- Final TOTAL --}}
-        <div class="mb-3">
-            <label>Final Total</label>
-            <input type="text" name="total" id="final_total" class="form-control" readonly>
-        </div>
-
-        {{-- PAYMENT TYPE --}}
-        <div class="mb-3">
-            <label>Payment Type</label>
-            <select name="payment_type" id="payment_type" class="form-control" required>
-                <option value="full">Full Payment</option>
-                <option value="part">Part Payment</option>
-            </select>
-        </div>
-
-        {{-- AMOUNT PAID (SHOW ONLY IF PART PAYMENT) --}}
-        <div class="mb-3 d-none" id="amount_paid_wrapper">
-            <label>Amount Paid</label>
-            <input type="number" name="amount_paid" id="amount_paid" class="form-control" min="0" value="0">
-        </div>
-
-        {{-- BALANCE --}}
-        <div class="mb-3">
-            <label>Balance</label>
-            <input type="text" name="balance" id="balance" class="form-control" readonly>
-        </div>
-
-        <button type="submit" class="btn btn-primary">Create Invoice</button>
-    </form>
+    </div>
 </div>
 
 {{-- JS --}}
@@ -223,5 +241,4 @@
         balanceInput.value = '';
     }
 </script>
-
 @endsection
